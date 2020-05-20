@@ -70,12 +70,14 @@ public class LoginController {
         final boolean b = redisUtil.set(token, login, LOGIN_EXPIRE_SECONDS);
 
         boolean flag = false;
-        for (Cookie c : request.getCookies()) {
-            if(c.getName().equals("token")) {
-                c.setValue(token);
-                response.addCookie(c);
-                flag = true;
-                break;
+        if(Objects.nonNull(request.getCookies())) {
+            for (Cookie c : request.getCookies()) {
+                if(c.getName().equals("token")) {
+                    c.setValue(token);
+                    response.addCookie(c);
+                    flag = true;
+                    break;
+                }
             }
         }
         if(!flag) {

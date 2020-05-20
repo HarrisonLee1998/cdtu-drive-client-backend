@@ -64,6 +64,7 @@ public class FileUserTest {
     public void getFolderTree() {
         String id = "16010201002";
         final Node node = fileService.selectFolderTree(id);
+        System.out.println("---------------------------------------");
         printTree(node, 1);
     }
 

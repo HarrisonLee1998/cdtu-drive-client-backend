@@ -169,7 +169,7 @@ public class FileController {
         if(Objects.isNull(node)) {
             result.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
         } else {
-            result.put("node", node);
+            result.put("nodes", node);
         }
         return  result;
     }

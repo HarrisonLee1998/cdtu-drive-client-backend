@@ -292,36 +292,37 @@ public class FileServiceImpl implements FileService {
             rootNode.setId(rootFolder.getId());
             rootNode.setLabel(rootFolder.getFName());
             rootNode.setChildren(new ArrayList<>());
-           buildTree(rootFolder, rootNode, fileUsers);
-           return rootNode;
+            buildTree(rootFolder, rootNode, fileUsers);
+            // printTree(rootFolder, 1);
+            return rootNode;
         }
     }
 
     /**
-     * 广度优先遍历
+     * 深度优先遍历
      */
     private void buildTree(FileUser rootFolder,Node rootNode,  List<FileUser>list) {
-        for (int i =0; i < rootFolder.getList().size(); ++i) {
-            FileUser fileUser = rootFolder.getList().get(i);
+        for (FileUser fileUser : rootFolder.getList()) {
             fileUser.setList(new ArrayList<>());
-
-            Node node = new Node();
-            node.setId(fileUser.getId());
-            node.setLabel(fileUser.getFName());
-            node.setChildren(new ArrayList<>());
-
+            Node node = new Node(fileUser.getId(), fileUser.getFName(), new ArrayList<>());
             list.forEach(f -> {
                 if(Objects.equals(f.getFPid(), fileUser.getId())) {
                     fileUser.getList().add(f);
-                    Node n = new Node();
-                    n.setId(f.getId());
-                    n.setLabel(f.getFName());
-                    n.setChildren(new ArrayList<>());
-                    node.getChildren().add(n);
                 }
             });
             rootNode.getChildren().add(node);
             buildTree(fileUser, node, list);
+        }
+    }
+
+    public void printTree(FileUser fileUser, int i) {
+        System.out.print(fileUser.getFName());
+        System.out.println();
+        for (FileUser n : fileUser.getList()) {
+            for(int j = 0; j < i; ++j) {
+                System.out.print("----");
+            }
+            printTree(n, i + 1);
         }
     }
 
