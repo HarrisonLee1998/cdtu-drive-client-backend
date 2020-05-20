@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.edu.cdtu.drive。dao.DepartmentMapper">
+  <resultMap id="BaseResultMap" type="cn.edu.cdtu.drive.pojo.Department">
+    <id column="id" jdbcType="CHAR" property="id" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
+    <result column="d_type" jdbcType="VARCHAR" property="type" />
+    <result column="p_did" jdbcType="CHAR" property="pDid" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from department
+    where id = #{id,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="cn.edu.cdtu.drive.pojo.Department">
+    insert into department (id, title, d_type,
+      p_did)
+    values (#{id,jdbcType=CHAR}, #{title,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, 
+      #{pDid,jdbcType=CHAR})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="cn.edu.cdtu.drive.pojo.Department">
+    update department
+    set title = #{title,jdbcType=VARCHAR},
+      d_type = #{type,jdbcType=VARCHAR},
+      p_did = #{pDid,jdbcType=CHAR}
+    where id = #{id,jdbcType=CHAR}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select id, title, d_type, p_did
+    from department
+    where id = #{id,jdbcType=CHAR}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select id, title, d_type, p_did
+    from department
+  </select>
+</mapper>

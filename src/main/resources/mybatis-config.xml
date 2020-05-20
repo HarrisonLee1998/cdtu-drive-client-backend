@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+    <!-- 下面这些配置标签都有严格的顺序，不能打乱，否则会报错-->
+
+    <settings>
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+        <!-- 开启懒加载 -->
+        <setting name="lazyLoadingEnabled" value="true"/>
+        <!--aggressiveLazyLoading在3.4.1版本下默认是true,新版是false -->
+        <setting name="aggressiveLazyLoading" value="false"/>
+        <!--虽然默认值是true，但是最好还是显示指定 -->
+        <setting name="cacheEnabled" value="false"/>
+    </settings>
+
+</configuration>

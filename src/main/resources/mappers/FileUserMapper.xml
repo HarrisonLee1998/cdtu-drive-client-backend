@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.edu.cdtu.drive.dao.FileUserMapper">
+  <resultMap id="BaseResultMap" type="cn.edu.cdtu.drive.pojo.FileUser">
+    <id column="id" jdbcType="CHAR" property="id" />
+    <result column="u_id" jdbcType="VARCHAR" property="uId" />
+    <result column="f_id" jdbcType="CHAR" property="fId" />
+    <result column="f_name" jdbcType="VARCHAR" property="fName" />
+    <result column="f_path" jdbcType="VARCHAR" property="fPath" />
+    <result column="is_folder" jdbcType="INTEGER" property="isFolder" />
+    <result column="f_type" jdbcType="VARCHAR" property="fType" />
+    <result column="f_pid" jdbcType="CHAR" property="fPid" />
+    <result column="f_size" jdbcType="BIGINT" property="fSize" />
+    <result column="last_update_date" jdbcType="TIMESTAMP" property="lastUpdateDate" />
+    <result column="is_delete" jdbcType="INTEGER" property="isDelete" />
+  </resultMap>
+
+  <resultMap id="WithSubItem" type="cn.edu.cdtu.drive.pojo.FileUser">
+    <id column="id" jdbcType="CHAR" property="id" />
+    <result column="u_id" jdbcType="VARCHAR" property="uId" />
+    <result column="f_id" jdbcType="CHAR" property="fId" />
+    <result column="f_name" jdbcType="VARCHAR" property="fName" />
+    <result column="f_path" jdbcType="VARCHAR" property="fPath" />
+    <result column="is_folder" jdbcType="INTEGER" property="isFolder" />
+    <result column="f_type" jdbcType="VARCHAR" property="fType" />
+    <result column="f_pid" jdbcType="CHAR" property="fPid" />
+    <result column="f_size" jdbcType="BIGINT" property="fSize" />
+    <result column="last_update_date" jdbcType="TIMESTAMP" property="lastUpdateDate" />
+    <result column="is_delete" jdbcType="INTEGER" property="isDelete" />
+    <association property="list" select="cn.edu.cdtu.drive.dao.FileUserMapper.selectFilesByPId" column="id"/>
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from file_user
+    where id = #{id,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="cn.edu.cdtu.drive.pojo.FileUser">
+    insert into file_user (id, u_id, f_id, f_name, f_path,  is_folder,
+      f_type, f_pid, f_size, last_update_date,
+      is_delete)
+    values (#{id,jdbcType=CHAR}, #{uId,jdbcType=VARCHAR},
+    #{fId,jdbcType=CHAR}, #{fName,jdbcType=VARCHAR}, #{fPath,jdbcType=VARCHAR},
+      #{isFolder,jdbcType=INTEGER},
+      #{fType,jdbcType=VARCHAR}, #{fPid,jdbcType=CHAR},
+      #{fSize,jdbcType=BIGINT}, #{lastUpdateDate,jdbcType=TIMESTAMP},
+      #{isDelete,jdbcType=INTEGER})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="cn.edu.cdtu.drive.pojo.FileUser">
+    update file_user
+    set u_id = #{uId,jdbcType=VARCHAR},
+      f_id = #{fId,jdbcType=CHAR},
+      f_name = #{fName,jdbcType=VARCHAR},
+      f_path = #{fPath, jdbcType=VARCHAR}
+      is_folder = #{isFolder,jdbcType=INTEGER},
+      f_type = #{fType,jdbcType=VARCHAR},
+      f_pid = #{fPid,jdbcType=CHAR},
+      #{fSize,jdbcType=BIGINT},
+      last_update_date = #{lastUpdateDate,jdbcType=TIMESTAMP},
+      is_delete = #{isDelete,jdbcType=INTEGER}
+    where id = #{id,jdbcType=CHAR}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select id, u_id, f_id, f_name, f_path, f_type, f_pid, last_update_date, is_delete
+    from file_user
+    where id = #{id,jdbcType=CHAR}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select id, u_id, f_id, f_name, f_path, f_type, f_pid, last_update_date, is_delete
+    from file_user
+  </select>
+
+  <select id="checkPermission" resultMap="BaseResultMap">
+    SELECT * FROM file_user WHERE is_delete = 0 AND u_id = #{uId} AND id = #{fId}
+  </select>
+
+  <select id="selectFileByPath" resultMap="WithSubItem">
+    SELECT * FROM file_user where u_id = #{uId} AND f_path = #{path}
+  </select>
+
+  <select id="selectFilesByPId" resultMap="BaseResultMap">
+    SELECT * FROM file_user where f_pid = #{id}
+  </select>
+
+  <update id="updateDate">
+    UPDATE file_user SET last_update_date = #{lastUpdateDate,jdbcType=TIMESTAMP} WHERE id = #{id,jdbcType=CHAR}
+  </update>
+
+  <select id="selectAllFolder" parameterType="java.lang.String" resultMap="BaseResultMap">
+    SELECT * FROM file_user WHERE u_id = #{uId} AND is_folder = 1
+  </select>
+</mapper>

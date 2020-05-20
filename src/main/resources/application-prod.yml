@@ -1,0 +1,9 @@
+logging:
+  config: classpath:logging-back-prod.xml
+spring:
+  redis:
+    host: 127.0.0.1
+    port: 6379
+  datasource:
+    druid:
+      url: jdbc:mysql://localhost:23306/cdtudrive?serverTimezone=Asia/Shanghai&useSSL=false&&characterEncoding=utf8&&useAffectedRows=true

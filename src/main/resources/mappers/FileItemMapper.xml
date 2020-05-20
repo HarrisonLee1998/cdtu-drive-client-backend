@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.edu.cdtu.drive.dao.FileItemMapper">
+  <resultMap id="BaseResultMap" type="cn.edu.cdtu.drive.pojo.FileItem">
+    <id column="id" jdbcType="CHAR" property="id" />
+    <result column="f_name" jdbcType="VARCHAR" property="fName" />
+    <result column="f_size" jdbcType="BIGINT" property="fSize" />
+    <result column="mime" jdbcType="VARCHAR" property="mime" />
+    <result column="f_type" jdbcType="VARCHAR" property="fType" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="path" jdbcType="VARCHAR" property="path" />
+    <result column="u_date" jdbcType="TIMESTAMP" property="uDate" />
+    <result column="u_id" jdbcType="VARCHAR" property="uId" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from file
+    where id = #{id,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="cn.edu.cdtu.drive.pojo.FileItem">
+    insert into file (id, f_name, f_size, 
+      mime, f_type,
+      status, path, u_date,  u_id)
+    values (#{id,jdbcType=CHAR}, #{fName,jdbcType=VARCHAR}, #{fSize,jdbcType=BIGINT}, 
+      #{mime,jdbcType=VARCHAR}, #{fType,jdbcType=VARCHAR},
+      #{status,jdbcType=INTEGER}, #{path,jdbcType=VARCHAR}, #{uDate,jdbcType=TIMESTAMP},  #{uId,jdbcType=VARCHAR})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="cn.edu.cdtu.drive.pojo.FileItem">
+    update file
+    set f_name = #{fName,jdbcType=VARCHAR},
+      f_size = #{fSize,jdbcType=BIGINT},
+      mime = #{mime,jdbcType=VARCHAR},
+      f_type = #{fType,jdbcType=VARCHAR},
+      status = #{status,jdbcType=INTEGER},
+      path = #{path,jdbcType=VARCHAR},
+      u_date = #{uDate,jdbcType=TIMESTAMP},
+      u_id = #{uId,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=CHAR}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select id, f_name, f_size, mime, f_type,  status, path, u_date, u_id
+    from file
+    where id = #{id,jdbcType=CHAR}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select id, f_name, f_size, mime, f_type, status, path, u_date, u_id
+    from file
+  </select>
+
+  <update id="updateFileStatus" parameterType="java.lang.String">
+    UPDATE file SET status = 1 WHERE id = #{id}
+  </update>
+</mapper>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <contextName>dev</contextName>
+    <property name="log.path" value="/var/log/drive" />
+    <property name="log.charset" value="UTF-8" />
+    <!-- Log4j: [S][%d{yyyyMMdd HH:mm:ss}][%-5p][%C:%L] - %m%n -->
+    <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+    <property name="log.pattern.file" value="%date{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n" />
+    <property name="log.pattern.console" value="%date{HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n" />
+
+    <!--输出到文件-->
+    <!--输出Info信息到到文件-->
+    <appender name="file-info" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 过滤掉Error信息 -->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.path}/info-%d{yyyy-MM-dd}.log</fileNamePattern>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${log.pattern.file}</pattern>
+        </encoder>
+    </appender>
+
+    <!--输出Warn和Error信息到到文件-->
+    <appender name="file-warn" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 过滤掉Error信息 -->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter"><!-- 只打印错误日志 -->
+            <level>WARN</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.path}/error-%d{yyyy-MM-dd}.log</fileNamePattern>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${log.pattern.file}</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.apache.ibatis" level="TRACE" additivity="false"/>
+    <logger name="java.sql.Connection" level="DEBUG" additivity="false"/>
+    <logger name="java.sql.Statement" level="DEBUG" />
+    <logger name="java.sql.PreparedStatement" level="DEBUG" additivity="false"/>
+
+    <!-- 日志输出级别 -->
+    <root level="INFO">
+        <appender-ref ref="file-info" />
+        <appender-ref ref="file-warn" />
+<!--        <appender-ref ref="console" />-->
+    </root>
+</configuration>

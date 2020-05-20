@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.edu.cdtu.drive.dao.LoginMapper">
+  <resultMap id="BaseResultMap" type="cn.edu.cdtu.drive.pojo.Login">
+    <result column="u_id" jdbcType="CHAR" property="uId" />
+    <result column="ip" jdbcType="VARCHAR" property="ip" />
+    <result column="date" jdbcType="TIMESTAMP" property="date" />
+    <result column="state" jdbcType="INTEGER" property="state" />
+  </resultMap>
+  <insert id="insert" parameterType="cn.edu.cdtu.drive.pojo.Login">
+    insert into login (u_id, ip, date, 
+      state)
+    values (#{uId,jdbcType=CHAR}, #{ip,jdbcType=VARCHAR}, #{date,jdbcType=TIMESTAMP}, 
+      #{state,jdbcType=INTEGER})
+  </insert>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select u_id, ip, date, state
+    from login
+  </select>
+</mapper>
