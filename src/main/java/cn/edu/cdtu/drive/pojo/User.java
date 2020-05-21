@@ -3,8 +3,6 @@ package cn.edu.cdtu.drive.pojo;
 
 import lombok.*;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 
 @AllArgsConstructor
@@ -40,8 +38,5 @@ public class User {
 
     private Integer limit;
 
-    @NonNull
-    @Min(0)
-    @Max(1)
-    private Integer isAdmin;
+    private Integer roleId;
 }

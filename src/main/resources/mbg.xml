@@ -43,8 +43,12 @@
 <!--		<table schema="cdtudrive" tableName="user" domainObjectName="User" catalog="cdtudrive">-->
 <!--			<property name="ignoreQualifiersAtRuntime" value="true"/>-->
 <!--		</table>-->
-		<table schema="cdtudrive" tableName="file" domainObjectName="FileItem" />
-		<table schema="cdtudrive" tableName="file_user" domainObjectName="FileUser" />
+<!--		<table schema="cdtudrive" tableName="file" domainObjectName="FileItem" />-->
+<!--		<table schema="cdtudrive" tableName="file_user" domainObjectName="FileUser" />-->
 <!--		<table schema="cdtudrive" tableName="login" domainObjectName="Login" />-->
+
+<!--		<table schema="cdtudrive" tableName="role" domainObjectName="Role" />-->
+<!--		<table schema="cdtudrive" tableName="permission" domainObjectName="permission" />-->
+		<table schema="cdtudrive" tableName="menu" domainObjectName="Menu" />
   </context>
 </generatorConfiguration>

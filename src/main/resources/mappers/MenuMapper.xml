@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.edu.cdtu.drive.dao.MenuMapper">
+  <resultMap id="BaseResultMap" type="cn.edu.cdtu.drive.pojo.Menu">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="link" jdbcType="VARCHAR" property="link" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
+    <result column="icon" jdbcType="VARCHAR" property="icon" />
+    <result column="pm_id" jdbcType="INTEGER" property="pmId" />
+  </resultMap>
+
+  <resultMap id="WithSubMenu" type="cn.edu.cdtu.drive.pojo.Menu">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="link" jdbcType="VARCHAR" property="link" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
+    <result column="icon" jdbcType="VARCHAR" property="icon" />
+    <result column="pm_id" jdbcType="INTEGER" property="pmId" />
+    <association property="subMenu" select="cn.edu.cdtu.drive.dao.MenuMapper.selectByParentId" column="id"/>
+  </resultMap>
+
+  <select id="selectByPermission" parameterType="java.util.List" resultMap="WithSubMenu">
+    select * from menu as m, permission as p
+    WHERE m.id = p.menu_id AND p.id IN
+    <foreach collection="ids" item="id" separator="," open="(" close=")">
+      #{id}
+    </foreach>
+  </select>
+
+  <select id="selectByParentId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select * from menu WHERE pm_id = #{pmId}
+  </select>
+</mapper>

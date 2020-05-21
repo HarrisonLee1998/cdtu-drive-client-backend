@@ -41,6 +41,10 @@ public class UserServiceImpl implements UserService {
             map.put("status", 401);
         } else {
             User user1 = userMapper.selectByPrimaryKey(user.getId());
+            if(Objects.isNull(user1)) {
+                map.put("status", 401);
+                return map;
+            }
             // 如果用户受限，那么则不能登录
             if(user1.getLimit() > 0) {
                 map.put("status", 403);
@@ -58,14 +62,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Login saveLoginInfo(User user, String ip, int state, int isAdmin) {
+    public Login saveLoginInfo(User user, String ip, int state) {
         Login login = new Login();
         login.setUId(user.getId());
         login.setIp(ip);
         login.setDate(LocalDateTime.now());
         login.setLastActionDateTime(LocalDateTime.now());
         login.setState(state);
-        login.setIsAdmin(isAdmin);
+        System.out.println(login);
         final int i = loginMapper.insert(login);
         if(i > 0) {
             return login;

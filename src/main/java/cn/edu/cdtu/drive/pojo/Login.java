@@ -16,5 +16,4 @@ public class Login {
     private LocalDateTime date;
     private Integer state;
     private LocalDateTime lastActionDateTime;
-    private Integer isAdmin;
 }

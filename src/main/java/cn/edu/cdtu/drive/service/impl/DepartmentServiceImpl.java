@@ -20,6 +20,10 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Autowired
     private DepartmentMapper departmentMapper;
 
+    public List<Department>selectAll() {
+        return departmentMapper.selectAll();
+    }
+
     @Override
     public Node selectDepartmentTree() {
         final List<Department> list = departmentMapper.selectAll();
@@ -35,6 +39,12 @@ public class DepartmentServiceImpl implements DepartmentService {
         return rootNode;
     }
 
+    /**
+     * 广度优先遍历
+     * @param rootDept
+     * @param rootNode
+     * @param list
+     */
     private void buildTree(Department rootDept, Node rootNode, List<Department> list) {
         Deque<Department> list1 = new ArrayDeque<>();
         list1.addLast(rootDept);

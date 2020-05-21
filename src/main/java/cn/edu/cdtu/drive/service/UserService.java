@@ -12,7 +12,7 @@ import java.util.Map;
  */
 public interface UserService {
     Map<String, Object> checkUserLogin(User user);
-    Login saveLoginInfo(User user, String ip, int state, int isAdmin);
+    Login saveLoginInfo(User user, String ip, int state);
 
     Login getLoginFromToken(HttpServletRequest request);
     User getUserFromToken(HttpServletRequest request);
