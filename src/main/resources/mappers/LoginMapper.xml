@@ -4,17 +4,18 @@
   <resultMap id="BaseResultMap" type="cn.edu.cdtu.drive.pojo.Login">
     <result column="u_id" jdbcType="CHAR" property="uId" />
     <result column="ip" jdbcType="VARCHAR" property="ip" />
-    <result column="date" jdbcType="TIMESTAMP" property="date" />
+    <result column="login_date" jdbcType="TIMESTAMP" property="date" />
     <result column="state" jdbcType="INTEGER" property="state" />
+    <result column="is_admin" jdbcType="INTEGER" property="isAdmin" />
   </resultMap>
   <insert id="insert" parameterType="cn.edu.cdtu.drive.pojo.Login">
-    insert into login (u_id, ip, date, 
-      state)
+    insert into login (u_id, ip, login_date,
+      state, is_admin)
     values (#{uId,jdbcType=CHAR}, #{ip,jdbcType=VARCHAR}, #{date,jdbcType=TIMESTAMP}, 
-      #{state,jdbcType=INTEGER})
+      #{state,jdbcType=INTEGER}), #{is_admin,jdbcType=INTEGER})
   </insert>
   <select id="selectAll" resultMap="BaseResultMap">
-    select u_id, ip, date, state
+    select u_id, ip, login_date, state
     from login
   </select>
 </mapper>

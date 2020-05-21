@@ -58,13 +58,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Login saveLoginInfo(User user, String ip, int state) {
+    public Login saveLoginInfo(User user, String ip, int state, int isAdmin) {
         Login login = new Login();
         login.setUId(user.getId());
         login.setIp(ip);
         login.setDate(LocalDateTime.now());
         login.setLastActionDateTime(LocalDateTime.now());
         login.setState(state);
+        login.setIsAdmin(isAdmin);
         final int i = loginMapper.insert(login);
         if(i > 0) {
             return login;

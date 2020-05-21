@@ -3,6 +3,8 @@ package cn.edu.cdtu.drive.pojo;
 
 import lombok.*;
 
+import java.util.List;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
@@ -17,4 +19,6 @@ public class Department {
     private String type;
 
     private String pDid;
+
+    private List<Department>list;
 }

@@ -53,12 +53,13 @@ public class LoginController {
             user = (User) map.get("user");
             user.setPassword(null);
         }
+
         // 保存登录信息
         Login login = null;
         if(Objects.equals(result.getStatus(), HttpStatus.OK)) {
-            login = userService.saveLoginInfo(user, ip, 1);
+            login = userService.saveLoginInfo(user, ip, 1, user.getIsAdmin());
         } else {
-            login = userService.saveLoginInfo(user, ip, 0);
+            login = userService.saveLoginInfo(user, ip, 0, user.getIsAdmin());
         }
         if(Objects.isNull(login)) {
             result.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);

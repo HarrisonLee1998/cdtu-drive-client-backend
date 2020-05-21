@@ -14,6 +14,7 @@
     <result column="u_ss" jdbcType="BIGINT" property="uSs" />
     <result column="dept_id" jdbcType="CHAR" property="deptId" />
     <result column="u_limit" jdbcType="INTEGER" property="limit" />
+    <result column="is_admin" jdbcType="INTEGER" property="isAdmin" />
   </resultMap>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
     delete from user
@@ -23,11 +24,11 @@
     insert into user (id, username, pwd, 
       gender, avatar, brief, 
       email, u_type, t_ss, u_ss,
-      dept_id, u_limit)
+      dept_id, u_limit, isAdmin)
     values (#{id,jdbcType=VARCHAR}, #{username,jdbcType=VARCHAR}, #{pwd,jdbcType=VARCHAR},
       #{gender,jdbcType=VARCHAR}, #{avatar,jdbcType=VARCHAR}, #{brief,jdbcType=VARCHAR}, 
       #{email,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{tSs,jdbcType=BIGINT}, #{uSs,jdbcType=BIGINT}, 
-      #{deptId,jdbcType=CHAR}, #{u_limit,jdbcType=INTEGER})
+      #{deptId,jdbcType=CHAR}, #{u_limit,jdbcType=INTEGER}), #{is_admin,jdbcType=INTEGER})
   </insert>
   <update id="updateByPrimaryKey" parameterType="cn.edu.cdtu.drive.pojo.User">
     update user
@@ -41,18 +42,19 @@
       t_ss = #{tSs,jdbcType=BIGINT},
       u_ss = #{uSs,jdbcType=BIGINT},
       dept_id = #{deptId,jdbcType=CHAR},
-      u_limit = #{u_limit,jdbcType=INTEGER}
+      u_limit = #{u_limit,jdbcType=INTEGER},
+      is_admin = #{is_admin,jdbcType=INTEGER}
     where id = #{id,jdbcType=VARCHAR}
   </update>
   <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
     select id, username, pwd, gender, avatar, brief, email, u_type, t_ss, u_ss, dept_id,
-    u_limit
+    u_limit, is_admin
     from user
     where id = #{id,jdbcType=VARCHAR}
   </select>
   <select id="selectAll" resultMap="BaseResultMap">
     select id, username, pwd, gender, avatar, brief, email, u_type, t_ss, u_ss, dept_id,
-    u_limit
+    u_limit, is_admin
     from user
   </select>
 
