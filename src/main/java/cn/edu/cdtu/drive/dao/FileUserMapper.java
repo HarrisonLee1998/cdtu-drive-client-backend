@@ -23,6 +23,8 @@ public interface FileUserMapper {
 
     FileUser selectFileByPath(@Param("uId") String uId, @Param("path") String path);
 
+    FileUser selectFileByName(@Param("uId") String uId, @Param("name") String name);
+
     List<FileUser>selectFilesByPId(String id);
 
     boolean updateDate(@Param("id") String id, @Param("lastUpdateDate") LocalDateTime localDateTime);

@@ -90,7 +90,6 @@ public class FileServiceImpl implements FileService {
             }
             return null;
         } else if (fileItem.getStatus() == 1) {
-            // 保存文件-用户关系记录到数据库
             return new ArrayList<>();
         } else {
             return getUnUploadedChunkNumber(fileItem);
@@ -171,6 +170,7 @@ public class FileServiceImpl implements FileService {
             return false;
         }
 
+        System.out.println(chunk);
         // 处理relative path
         String relativePath = chunk.getRelativePath();
         final String[] strings = relativePath.split("/");
@@ -206,11 +206,9 @@ public class FileServiceImpl implements FileService {
                 synchronized (FileServiceImpl.class){
                     final FileUser f1 = fileUserMapper.selectByPrimaryKey(f.getId());
                     if (Objects.nonNull(f1)) {
-                        System.out.println("当前文件夹已存在");
                         fileUserMapper.updateDate(f1.getId(), LocalDateTime.now());
                         folders.set(i, f1);
                     } else {
-                        System.out.println("当前文件夹未存在");
                         if (i == 0) {
                             f.setFPid(chunk.getParentFileId());
                         } else {
@@ -234,14 +232,21 @@ public class FileServiceImpl implements FileService {
         fileUser.setFType(chunk.getType());
         fileUser.setIsDelete(0);
         fileUser.setFSize(chunk.getTotalSize());
-        if(!Objects.equals("/", parentFile.getFName())) {
-            // 如果父目录不是根目录
+
+        if(folders.size() == 0) {
+            // 上传的是文件
+            fileUser.setFPid(chunk.getParentFileId());
+            if(Objects.equals("/", parentFile.getFName())) {
+                // 如果父目录是根目录
+                fileUser.setFPath("/"  + fileUser.getFName());
+            } else {
+                // 如果父目录不是根目录
+                fileUser.setFPath(parentFile.getFPath()+ "/" + fileUser.getFName());
+            }
+        } else {
+            // 上传的是文件夹
             fileUser.setFPid(folders.get(folders.size() - 1).getId());
             fileUser.setFPath(folders.get(folders.size() - 1).getFPath()+ "/" + fileUser.getFName());
-        } else {
-            // 如果父目录是根目录
-            fileUser.setFPid(chunk.getParentFileId());
-            fileUser.setFPath(parentFile.getFPath()  + fileUser.getFName());
         }
         fileUser.setLastUpdateDate(LocalDateTime.now());
         final int i = fileUserMapper.insert(fileUser);
@@ -284,7 +289,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public Node selectFolderTree(String uId) {
         final List<FileUser>fileUsers = fileUserMapper.selectAllFolder(uId);
-        FileUser rootFolder = fileUserMapper.selectFileByPath(uId, "/");
+        FileUser rootFolder = fileUserMapper.selectFileByName(uId, "/");
         if(Objects.isNull(rootFolder)) {
             return null;
         } else {
@@ -293,7 +298,7 @@ public class FileServiceImpl implements FileService {
             rootNode.setLabel(rootFolder.getFName());
             rootNode.setChildren(new ArrayList<>());
             buildTree(rootFolder, rootNode, fileUsers);
-            // printTree(rootFolder, 1);
+            //printTree(rootFolder, 1);
             return rootNode;
         }
     }
@@ -302,17 +307,13 @@ public class FileServiceImpl implements FileService {
      * 深度优先遍历
      */
     private void buildTree(FileUser rootFolder,Node rootNode,  List<FileUser>list) {
-        for (FileUser fileUser : rootFolder.getList()) {
-            fileUser.setList(new ArrayList<>());
-            Node node = new Node(fileUser.getId(), fileUser.getFName(), new ArrayList<>());
-            list.forEach(f -> {
-                if(Objects.equals(f.getFPid(), fileUser.getId())) {
-                    fileUser.getList().add(f);
-                }
-            });
-            rootNode.getChildren().add(node);
-            buildTree(fileUser, node, list);
-        }
+        list.stream()
+                .filter(fileUser -> Objects.equals(rootFolder.getId(), fileUser.getFPid()))
+                .forEach(fileUser -> {
+                    Node node = new Node(fileUser.getId(), fileUser.getFName(), new ArrayList<>());
+                    rootNode.getChildren().add(node);
+                    buildTree(fileUser, node, list);
+                });
     }
 
     public void printTree(FileUser fileUser, int i) {

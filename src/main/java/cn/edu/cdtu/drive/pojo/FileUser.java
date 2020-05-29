@@ -41,4 +41,8 @@ public class FileUser implements Serializable {
     private List<FileUser>list;
 
     private Long fSize;
+
+    private String gId;
+
+    private String shareId;
 }

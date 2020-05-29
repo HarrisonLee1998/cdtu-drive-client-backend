@@ -69,7 +69,6 @@ public class UserServiceImpl implements UserService {
         login.setDate(LocalDateTime.now());
         login.setLastActionDateTime(LocalDateTime.now());
         login.setState(state);
-        System.out.println(login);
         final int i = loginMapper.insert(login);
         if(i > 0) {
             return login;

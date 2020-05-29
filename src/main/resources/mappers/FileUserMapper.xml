@@ -76,6 +76,10 @@
     SELECT * FROM file_user where u_id = #{uId} AND f_path = #{path}
   </select>
 
+  <select id="selectFileByName" resultMap="BaseResultMap">
+    SELECT * FROM file_user where u_id = #{uId} AND f_name = #{name}
+  </select>
+
   <select id="selectFilesByPId" resultMap="BaseResultMap">
     SELECT * FROM file_user where f_pid = #{id}
   </select>

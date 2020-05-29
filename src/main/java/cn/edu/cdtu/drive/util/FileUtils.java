@@ -2,6 +2,8 @@ package cn.edu.cdtu.drive.util;
 
 
 import cn.edu.cdtu.drive.pojo.Chunk;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,6 +15,9 @@ import java.nio.file.StandardOpenOption;
  * @date 2020/5/14 7:37
  */
 public class FileUtils {
+
+    private static Logger logger = LoggerFactory.getLogger(FileUtils.class);
+
     public static String generatePath(String uploadFolder, Chunk chunk) {
         StringBuilder sb = new StringBuilder();
         sb.append(uploadFolder).append("/").append(chunk.getIdentifier());
@@ -60,8 +65,8 @@ public class FileUtils {
                     });
             return true;
         } catch (IOException e) {
-            // log.error(e.getMessage(), e);
-            System.out.println("合并失败");
+            logger.error("合并失败");
+            logger.error(e.getMessage());
             return false;
         }
     }
