@@ -236,17 +236,17 @@ public class FileServiceImpl implements FileService {
         if(folders.size() == 0) {
             // 上传的是文件
             fileUser.setFPid(chunk.getParentFileId());
-            if(Objects.equals("/", parentFile.getFName())) {
-                // 如果父目录是根目录
-                fileUser.setFPath("/"  + fileUser.getFName());
-            } else {
-                // 如果父目录不是根目录
-                fileUser.setFPath(parentFile.getFPath()+ "/" + fileUser.getFName());
-            }
+//            if(Objects.equals("/", parentFile.getFName())) {
+//                // 如果父目录是根目录
+//                fileUser.setFPath("/"  + fileUser.getFName());
+//            } else {
+//                // 如果父目录不是根目录
+//                fileUser.setFPath(parentFile.getFPath()+ "/" + fileUser.getFName());
+//            }
         } else {
             // 上传的是文件夹
             fileUser.setFPid(folders.get(folders.size() - 1).getId());
-            fileUser.setFPath(folders.get(folders.size() - 1).getFPath()+ "/" + fileUser.getFName());
+            // fileUser.setFPath(folders.get(folders.size() - 1).getFPath()+ "/" + fileUser.getFName());
         }
         fileUser.setLastUpdateDate(LocalDateTime.now());
         final int i = fileUserMapper.insert(fileUser);
@@ -303,6 +303,34 @@ public class FileServiceImpl implements FileService {
         }
     }
 
+    @Override
+    public Boolean rename(String uId, String id, String name) {
+        // 先查询出fileUser
+        FileUser fileUser = fileUserMapper.selectByPrimaryKey(id);
+        if(Objects.isNull(fileUser)) {
+            return false;
+        } else {
+            // 鉴权
+            if(Objects.nonNull(fileUser.getGId())) {
+                // 组空间, 后面补充
+            } else {
+                // 用户空间
+                if(!Objects.equals(uId, fileUser.getUId())) {
+                    return false;
+                }
+            }
+        }
+        if(fileUser.getIsFolder()  == 1) {
+            int i = fileUser.getFPath().lastIndexOf(fileUser.getFName());
+            String path = fileUser.getFPath().substring(0, i) + name;
+            fileUser.setFPath(path);
+            updateSubFolderFPath(fileUser);
+        }
+        fileUser.setFName(name);
+        fileUserMapper.updateByPrimaryKey(fileUser);
+        return true;
+    }
+
     /**
      * 深度优先遍历
      */
@@ -346,6 +374,34 @@ public class FileServiceImpl implements FileService {
                 chunk.getIdentifier();
         fileItem.setPath(builder);
         return fileItem;
+    }
+
+    // 更新该文件夹下的所有文件
+    private void updateSubFolderFPath(FileUser fileUser) {
+        ArrayList<FileUser> list = new ArrayList<>();
+        var subFolders = new ArrayList<FileUser>();
+        list.add(fileUser);
+        // 层序遍历，查询所有子folder
+
+        while(list.size() > 0) {
+            for (FileUser f : list) {
+                var folders = fileUserMapper.selectFilesByPId(f.getId())
+                        .stream()
+                        .filter(temp -> temp.getIsFolder() == 1)
+                        .collect(Collectors.toList());
+                String path = f.getFPath();
+                folders.forEach(ff->{
+                    ff.setFPath(path + "/" + ff.getFName());
+                });
+                subFolders.addAll(folders);
+            }
+            subFolders.forEach(f -> {
+                fileUserMapper.updateByPrimaryKey(f);
+            });
+            list.clear();
+            list.addAll(subFolders);
+            subFolders.clear();
+        }
     }
     /**
      * 每天0点执行一次

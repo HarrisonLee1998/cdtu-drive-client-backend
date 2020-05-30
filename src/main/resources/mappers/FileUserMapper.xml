@@ -13,6 +13,8 @@
     <result column="f_size" jdbcType="BIGINT" property="fSize" />
     <result column="last_update_date" jdbcType="TIMESTAMP" property="lastUpdateDate" />
     <result column="is_delete" jdbcType="INTEGER" property="isDelete" />
+    <result column="g_id" jdbcType="VARCHAR" property="gId" />
+    <result column="share_id" jdbcType="VARCHAR" property="shareId" />
   </resultMap>
 
   <resultMap id="WithSubItem" type="cn.edu.cdtu.drive.pojo.FileUser">
@@ -27,6 +29,8 @@
     <result column="f_size" jdbcType="BIGINT" property="fSize" />
     <result column="last_update_date" jdbcType="TIMESTAMP" property="lastUpdateDate" />
     <result column="is_delete" jdbcType="INTEGER" property="isDelete" />
+    <result column="g_id" jdbcType="VARCHAR" property="gId" />
+    <result column="share_id" jdbcType="VARCHAR" property="shareId" />
     <association property="list" select="cn.edu.cdtu.drive.dao.FileUserMapper.selectFilesByPId" column="id"/>
   </resultMap>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
@@ -49,17 +53,18 @@
     set u_id = #{uId,jdbcType=VARCHAR},
       f_id = #{fId,jdbcType=CHAR},
       f_name = #{fName,jdbcType=VARCHAR},
-      f_path = #{fPath, jdbcType=VARCHAR}
+      f_path = #{fPath, jdbcType=VARCHAR},
       is_folder = #{isFolder,jdbcType=INTEGER},
       f_type = #{fType,jdbcType=VARCHAR},
       f_pid = #{fPid,jdbcType=CHAR},
-      #{fSize,jdbcType=BIGINT},
+      f_size = #{fSize,jdbcType=BIGINT},
       last_update_date = #{lastUpdateDate,jdbcType=TIMESTAMP},
       is_delete = #{isDelete,jdbcType=INTEGER}
     where id = #{id,jdbcType=CHAR}
   </update>
   <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
-    select id, u_id, f_id, f_name, f_path, f_type, f_pid, last_update_date, is_delete
+    select id, u_id, f_id, f_name, f_path,is_folder, f_type,
+    f_pid, last_update_date, is_delete, g_id, share_id
     from file_user
     where id = #{id,jdbcType=CHAR}
   </select>

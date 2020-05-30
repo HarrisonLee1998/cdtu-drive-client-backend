@@ -11,18 +11,15 @@ import cn.edu.cdtu.drive.util.Node;
 import cn.edu.cdtu.drive.util.RedisUtil;
 import cn.edu.cdtu.drive.util.Result;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -31,8 +28,6 @@ import java.util.Objects;
  */
 @RestController
 public class FileController {
-    @Value("${prop.upload-folder}")
-    private String uploadFolder;
 
     @Autowired
     private FileService fileService;
@@ -116,7 +111,7 @@ public class FileController {
     }
 
     @ApiOperation("获取当前文件夹下的文件信息")
-    @GetMapping("file/folder/current")
+    @GetMapping("file/folder")
     public Result getFolderTree(HttpServletRequest request,  @RequestParam @NotBlank String path) {
         final Result result = Result.result();
         final String token = CookieUtil.getCookie(request, "token");
@@ -128,7 +123,7 @@ public class FileController {
     }
 
     @ApiOperation("新增用户文件关系")
-    @PostMapping("file/file/user")
+    @PostMapping("file/user")
     public Result addFileUser(HttpServletRequest request, Chunk chunk) {
         final Result result = Result.result();
         final Login login = userService.getLoginFromToken(request);
@@ -144,7 +139,7 @@ public class FileController {
     }
 
     @ApiOperation("新建文件夹")
-    @PostMapping("file/file/folder")
+    @PostMapping("file/folder")
     public Result addFileUser(HttpServletRequest request, FileUser fileUser) {
         final Result result = Result.result();
         if(Objects.isNull(fileUser)) {
@@ -161,7 +156,7 @@ public class FileController {
     }
 
     @ApiOperation("获取目录树")
-    @GetMapping("file/file/folder/tree")
+    @GetMapping("file/folder/tree")
     public Result selectFolderTree(HttpServletRequest request) {
         final Result result = Result.result();
         final Login login = userService.getLoginFromToken(request);
@@ -172,5 +167,40 @@ public class FileController {
             result.put("nodes", node);
         }
         return  result;
+    }
+
+    @ApiOperation("重命名文件")
+    @PatchMapping("file/rename")
+    public Result rename(HttpServletRequest request, @RequestBody Map<String, Object> map) {
+        Result result = Result.result();
+        Login login = userService.getLoginFromToken(request);
+        String id = (String) map.get("id");
+        String name = (String) map.get("name");
+        map.forEach((key, value) -> {
+            System.out.println(key + " : " + value);
+        });
+        if(Objects.nonNull(login) && Objects.nonNull(id) && Objects.nonNull(name)) {
+            var b = fileService.rename(login.getUId(), id, name);
+            if(!b) {
+                result.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } else {
+            result.setStatus(HttpStatus.BAD_REQUEST);
+        }
+        return result;
+    }
+
+    @ApiOperation("复制文件")
+    @PatchMapping("file/copy")
+    public Result copy(@RequestBody Map<String, Object> map) {
+        Result result = Result.result();
+        return result;
+    }
+
+    @ApiOperation("移动文件")
+    @PatchMapping("file/move")
+    public Result move(@RequestBody Map<String, Object> map) {
+        Result result = Result.result();
+        return result;
     }
 }

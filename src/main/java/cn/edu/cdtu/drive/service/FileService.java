@@ -19,4 +19,6 @@ public interface FileService {
     boolean saveFileUser(String uId,Chunk chunk);
     boolean newFileUser(FileUser fileUser);
     Node selectFolderTree(String uId);
+
+    Boolean rename(String uId, String id, String name);
 }
