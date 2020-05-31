@@ -25,15 +25,15 @@ public interface FileUserMapper {
 
     FileUser selectFileByName(@Param("uId") String uId, @Param("name") String name);
 
-    List<FileUser>selectFilesByPId(String id);
+    List<FileUser> selectFilesByPId(String id);
 
     boolean updateDate(@Param("id") String id, @Param("lastUpdateDate") LocalDateTime localDateTime);
 
     List<FileUser> selectAllFolder(String uId);
 
-    List<FileUser> selectAllRecycledFile (String uId);
+    List<FileUser> selectAllRecycledFile(String uId);
 
     boolean handleRecycle(@Param("id") String id, @Param("flag") Integer flag);
 
-    boolean deleteByBatch(@Param("ids") List<String>ids);
+    boolean deleteByBatch(@Param("ids") List<String> ids);
 }

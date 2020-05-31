@@ -49,6 +49,8 @@
 
 <!--		<table schema="cdtudrive" tableName="role" domainObjectName="Role" />-->
 <!--		<table schema="cdtudrive" tableName="permission" domainObjectName="permission" />-->
-		<table schema="cdtudrive" tableName="menu" domainObjectName="Menu" />
+<!--		<table schema="cdtudrive" tableName="menu" domainObjectName="Menu" />-->
+		<table schema="cdtudrive" tableName="share" domainObjectName="Share" />
+		<table schema="cdtudrive" tableName="group" domainObjectName="Group" />
   </context>
 </generatorConfiguration>

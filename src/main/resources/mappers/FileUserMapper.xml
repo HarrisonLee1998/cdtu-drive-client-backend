@@ -13,8 +13,6 @@
     <result column="f_size" jdbcType="BIGINT" property="fSize" />
     <result column="last_update_date" jdbcType="TIMESTAMP" property="lastUpdateDate" />
     <result column="is_delete" jdbcType="INTEGER" property="isDelete" />
-    <result column="g_id" jdbcType="VARCHAR" property="gId" />
-    <result column="share_id" jdbcType="VARCHAR" property="shareId" />
   </resultMap>
 
   <resultMap id="WithSubItem" type="cn.edu.cdtu.drive.pojo.FileUser">
@@ -29,8 +27,6 @@
     <result column="f_size" jdbcType="BIGINT" property="fSize" />
     <result column="last_update_date" jdbcType="TIMESTAMP" property="lastUpdateDate" />
     <result column="is_delete" jdbcType="INTEGER" property="isDelete" />
-    <result column="g_id" jdbcType="VARCHAR" property="gId" />
-    <result column="share_id" jdbcType="VARCHAR" property="shareId" />
     <association property="list" select="cn.edu.cdtu.drive.dao.FileUserMapper.selectFilesByPId" column="id"/>
   </resultMap>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
@@ -64,7 +60,7 @@
   </update>
   <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
     select id, u_id, f_id, f_name, f_path,is_folder, f_type,
-    f_pid, f_size,last_update_date, is_delete, g_id, share_id
+    f_pid, f_size,last_update_date, is_delete
     from file_user
     where id = #{id,jdbcType=CHAR}
   </select>

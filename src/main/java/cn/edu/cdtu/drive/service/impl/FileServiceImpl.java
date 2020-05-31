@@ -609,8 +609,7 @@ public class FileServiceImpl implements FileService {
         fileItem.setUDate(LocalDateTime.now());
         fileItem.setStatus(status);
         fileItem.setUId(uId);
-        String builder = TODAY_COMMON_PATH + "/" +
-                chunk.getIdentifier();
+        String builder = Paths.get(TODAY_COMMON_PATH, chunk.getIdentifier()).toString();
         fileItem.setPath(builder);
         return fileItem;
     }

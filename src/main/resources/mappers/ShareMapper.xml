@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.edu.cdtu.drive.dao.ShareMapper">
+  <resultMap id="BaseResultMap" type="cn.edu.cdtu.drive.pojo.Share">
+    <id column="id" jdbcType="CHAR" property="id" />
+    <result column="pwd" jdbcType="CHAR" property="pwd" />
+    <result column="view_times" jdbcType="INTEGER" property="viewTimes" />
+    <result column="save_times" jdbcType="INTEGER" property="saveTimes" />
+    <result column="download_times" jdbcType="INTEGER" property="downloadTimes" />
+    <result column="create_date" jdbcType="TIMESTAMP" property="createDate" />
+    <result column="expire_date" jdbcType="TIMESTAMP" property="expireDate" />
+    <result column="u_id" jdbcType="VARCHAR" property="uId" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from share
+    where id = #{id,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="cn.edu.cdtu.drive.pojo.Share">
+    insert into share (id, pwd, view_times, 
+      save_times, download_times, create_date, 
+      expire_date, u_id)
+    values (#{id,jdbcType=CHAR}, #{pwd,jdbcType=CHAR}, #{viewTimes,jdbcType=INTEGER},
+      #{saveTimes,jdbcType=INTEGER}, #{downloadTimes,jdbcType=INTEGER}, #{createDate,jdbcType=TIMESTAMP}, 
+      #{expireDate,jdbcType=TIMESTAMP}, #{uId,jdbcType=VARCHAR})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="cn.edu.cdtu.drive.pojo.Share">
+    update share
+    set pwd = #{pwd,jdbcType=CHAR},
+      view_times = #{viewTimes,jdbcType=INTEGER},
+      save_times = #{saveTimes,jdbcType=INTEGER},
+      download_times = #{downloadTimes,jdbcType=INTEGER},
+      create_date = #{createDate,jdbcType=TIMESTAMP},
+      expire_date = #{expireDate,jdbcType=TIMESTAMP},
+      u_id = #{uId,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=CHAR}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select id, pwd, view_times, save_times, download_times, create_date, expire_date, u_id
+    from share
+    where id = #{id,jdbcType=CHAR}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select id, pwd, view_times, save_times, download_times, create_date, expire_date, u_id
+    from share
+  </select>
+
+  <select id="selectAllByUser" resultMap="BaseResultMap">
+    SELECT * FROM share WHERE u_id = #{uId}
+  </select>
+
+  <update id="addViewTimes">
+    UPDATE file_user SET view_times = view_times + 1 WHERE id = #{shareId}
+  </update>
+
+  <update id="addSaveTimes">
+    UPDATE file_user SET save_times = save_times + 1 WHERE id = #{shareId}
+  </update>
+
+  <update id="addDownloadTimes">
+    UPDATE file_user SET download_times = download_times + 1 WHERE id = #{shareId}
+  </update>
+
+  <insert id="saveShareFileUser">
+    INSERT INTO share_file_user VALUES
+    <foreach collection="ids" item="fuId" separator=",">
+      (#{shareId}, #{fuId})
+    </foreach>
+  </insert>
+</mapper>

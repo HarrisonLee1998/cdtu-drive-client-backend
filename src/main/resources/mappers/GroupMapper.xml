@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.edu.cdtu.drive.dao.GroupMapper">
+  <resultMap id="BaseResultMap" type="cn.edu.cdtu.drive.pojo.Group">
+    <id column="id" jdbcType="CHAR" property="id" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
+    <result column="avatar" jdbcType="VARCHAR" property="avatar" />
+    <result column="brief" jdbcType="VARCHAR" property="brief" />
+    <result column="limit" jdbcType="INTEGER" property="limit" />
+    <result column="is_writable" jdbcType="INTEGER" property="isWritable" />
+    <result column="is_readable" jdbcType="INTEGER" property="isReadable" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from group
+    where id = #{id,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="cn.edu.cdtu.drive.pojo.Group">
+    insert into group (id, title, avatar, 
+      brief, limit, is_writable, 
+      is_readable)
+    values (#{id,jdbcType=CHAR}, #{title,jdbcType=VARCHAR}, #{avatar,jdbcType=VARCHAR}, 
+      #{brief,jdbcType=VARCHAR}, #{limit,jdbcType=INTEGER}, #{isWritable,jdbcType=INTEGER}, 
+      #{isReadable,jdbcType=INTEGER})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="cn.edu.cdtu.drive.pojo.Group">
+    update group
+    set title = #{title,jdbcType=VARCHAR},
+      avatar = #{avatar,jdbcType=VARCHAR},
+      brief = #{brief,jdbcType=VARCHAR},
+      limit = #{limit,jdbcType=INTEGER},
+      is_writable = #{isWritable,jdbcType=INTEGER},
+      is_readable = #{isReadable,jdbcType=INTEGER}
+    where id = #{id,jdbcType=CHAR}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select id, title, avatar, brief, limit, is_writable, is_readable
+    from group
+    where id = #{id,jdbcType=CHAR}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select id, title, avatar, brief, limit, is_writable, is_readable
+    from group
+  </select>
+</mapper>
