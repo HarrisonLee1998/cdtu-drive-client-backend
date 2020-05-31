@@ -3,6 +3,7 @@ package cn.edu.cdtu.drive.service;
 import cn.edu.cdtu.drive.pojo.Chunk;
 import cn.edu.cdtu.drive.pojo.FileUser;
 import cn.edu.cdtu.drive.util.Node;
+import cn.edu.cdtu.drive.util.Result;
 
 import java.util.List;
 
@@ -21,4 +22,6 @@ public interface FileService {
     Node selectFolderTree(String uId);
 
     Boolean rename(String uId, String id, String name);
+    Result move(String uId, String src, String desc);
+    Result copy(String uId, String src, String desc);
 }

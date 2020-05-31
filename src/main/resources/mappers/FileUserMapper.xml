@@ -64,7 +64,7 @@
   </update>
   <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
     select id, u_id, f_id, f_name, f_path,is_folder, f_type,
-    f_pid, last_update_date, is_delete, g_id, share_id
+    f_pid, f_size,last_update_date, is_delete, g_id, share_id
     from file_user
     where id = #{id,jdbcType=CHAR}
   </select>

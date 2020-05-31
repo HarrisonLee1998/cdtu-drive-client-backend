@@ -192,15 +192,19 @@ public class FileController {
 
     @ApiOperation("复制文件")
     @PatchMapping("file/copy")
-    public Result copy(@RequestBody Map<String, Object> map) {
-        Result result = Result.result();
-        return result;
+    public Result copy(HttpServletRequest request, @RequestBody Map<String, Object> map) {
+        var src = (String)map.get("src");
+        var desc = (String)map.get("desc");
+        var login = userService.getLoginFromToken(request);
+        return fileService.copy(login.getUId(), src, desc);
     }
 
     @ApiOperation("移动文件")
     @PatchMapping("file/move")
-    public Result move(@RequestBody Map<String, Object> map) {
-        Result result = Result.result();
-        return result;
+    public Result move(HttpServletRequest request, @RequestBody Map<String, Object> map) {
+        var src = (String)map.get("src");
+        var desc = (String)map.get("desc");
+        var login = userService.getLoginFromToken(request);
+        return fileService.move(login.getUId(), src, desc);
     }
 }

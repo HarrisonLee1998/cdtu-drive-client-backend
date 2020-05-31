@@ -9,8 +9,10 @@ import cn.edu.cdtu.drive.pojo.FileUser;
 import cn.edu.cdtu.drive.service.FileService;
 import cn.edu.cdtu.drive.util.FileUtils;
 import cn.edu.cdtu.drive.util.Node;
+import cn.edu.cdtu.drive.util.Result;
 import cn.edu.cdtu.drive.util.UUIDHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -329,6 +331,162 @@ public class FileServiceImpl implements FileService {
         fileUser.setFName(name);
         fileUserMapper.updateByPrimaryKey(fileUser);
         return true;
+    }
+
+    @Override
+    public Result move(String uId, String src, String desc) {
+        var result = Result.result();
+        if(Objects.isNull(src) || Objects.isNull(desc) || Objects.equals(src, desc)) {
+            result.setStatus(HttpStatus.BAD_REQUEST);
+            return result;
+        }
+        var srcFile = fileUserMapper.selectByPrimaryKey(src);
+        var targetFile = fileUserMapper.selectByPrimaryKey(desc);
+
+        if(Objects.isNull(srcFile) || Objects.isNull(desc) || targetFile.getIsFolder() != 1) {
+            result.setStatus(HttpStatus.BAD_REQUEST);
+            return result;
+        }
+        // 权限校验
+        if(Objects.isNull(srcFile.getGId()) && Objects.isNull(targetFile.getGId())) {
+            // 自有空间操作
+            if(!Objects.equals(srcFile.getUId(), uId) || !Objects.equals(targetFile.getUId(), uId)) {
+                result.setStatus(HttpStatus.BAD_REQUEST);
+                return result;
+            }
+        } else if(Objects.nonNull(srcFile.getGId()) && Objects.nonNull(targetFile.getGId())) {
+            // 组空间操作
+        } else {
+            // 其他情况
+            result.setStatus(HttpStatus.BAD_REQUEST);
+            return result;
+        }
+        // 校验目标目录下第一级子目录是否有源目录同名的目录
+        if(srcFile.getIsFolder() == 1){
+            var list = fileUserMapper.selectFilesByPId(desc);
+            for (FileUser f : list) {
+                if(Objects.equals(f.getFName(), srcFile.getFName())) {
+                    result.setStatus(HttpStatus.BAD_REQUEST);
+                    result.put("msg", "目标目录存在与源目录同名的子目录");
+                    return result;
+                }
+            }
+        }
+        // 校验目标目录是否为源目录的子目录,并同时更改源目录的fPath
+        List<FileUser> list = new ArrayList<>();
+        List<FileUser> subList = new ArrayList<>();
+        List<FileUser> total = new ArrayList<>();
+        list.add(srcFile);
+        total.add(srcFile);
+        srcFile.setFPid(targetFile.getId());
+        if(Objects.equals(targetFile.getFName(), "/")) {
+            // 如果目标目录是根目录
+            srcFile.setFPath("/" + srcFile.getFName());
+        } else {
+            // 如果目标目录不是根目录
+            srcFile.setFPath( targetFile.getFPath() + "/" + srcFile.getFName());
+        }
+        while(list.size() > 0) {
+            for (FileUser f : list) {
+                var temp = fileUserMapper.selectFilesByPId(f.getId());
+                for (FileUser tf : temp) {
+                    if(Objects.equals(tf.getId(), desc)) {
+                        result.setStatus(HttpStatus.BAD_REQUEST);
+                        result.put("msg", "目标目录不能是源目录或其子目录");
+                        return result;
+                    }
+                    tf.setFPath(f.getFPath() + "/" + tf.getFName());
+                }
+                subList.addAll(temp);
+                total.addAll(temp);
+            }
+            list.clear();
+            list.addAll(subList);
+            subList.clear();
+        }
+        for (FileUser fileUser : total) {
+            fileUserMapper.updateByPrimaryKey(fileUser);
+        }
+        return result;
+    }
+
+    @Override
+    public Result copy(String uId, String src, String desc) {
+        var result = Result.result();
+        if (Objects.isNull(src) || Objects.isNull(desc) || Objects.equals(src, desc)) {
+            result.setStatus(HttpStatus.BAD_REQUEST);
+            return result;
+        }
+
+        var srcFile = fileUserMapper.selectByPrimaryKey(src);
+        var targetFile = fileUserMapper.selectByPrimaryKey(desc);
+
+        if(Objects.isNull(srcFile) || Objects.isNull(targetFile) || targetFile.getIsFolder() != 1) {
+            result.setStatus(HttpStatus.BAD_REQUEST);
+            return result;
+        }
+
+        // 校验权限
+        if(Objects.nonNull(srcFile.getGId()) && Objects.nonNull(targetFile.getGId())) {
+            // 组空间操作
+        } else if(Objects.isNull(srcFile.getGId()) && Objects.isNull(targetFile.getGId())) {
+            // 自有空间操作
+            if(!Objects.equals(srcFile.getUId(), uId) || !Objects.equals(targetFile.getUId(), uId)) {
+                result.setStatus(HttpStatus.BAD_REQUEST);
+                return result;
+            }
+        }
+        // 校验目标目录下是否存在与源目录同名的文件夹
+        if(srcFile.getIsFolder() == 1) {
+            var list = fileUserMapper.selectFilesByPId(targetFile.getId());
+            for (FileUser f : list) {
+                if(Objects.equals(f.getFName(), srcFile.getFName())) {
+                    result.setStatus(HttpStatus.BAD_REQUEST);
+                    result.put("msg", "目标目录存在与源目录同名的子目录");
+                    return result;
+                }
+            }
+        }
+
+        List<FileUser>list = new ArrayList<>();
+        List<FileUser>subList = new ArrayList<>();
+        List<FileUser>total = new ArrayList<>();
+
+        list.add(srcFile);
+        total.add(srcFile);
+        srcFile.setFPid(targetFile.getId());
+        if(Objects.equals(targetFile.getFName(), "/")) {
+            // 如果目标目录是根目录
+            srcFile.setFPath("/" + srcFile.getFName());
+        } else {
+            // 如果目标目录不是根目录
+            srcFile.setFPath( targetFile.getFPath() + "/" + srcFile.getFName());
+        }
+
+        while(list.size() > 0) {
+            for (FileUser f : list) {
+                var temp = fileUserMapper.selectFilesByPId(f.getId());
+                f.setId(DigestUtils.md5DigestAsHex((uId + f.getId()).getBytes()));
+                for (FileUser tf : temp) {
+                    if(Objects.equals(tf.getId(), desc)) {
+                        result.setStatus(HttpStatus.BAD_REQUEST);
+                        result.put("msg", "目标目录不能是源目录或其子目录");
+                        return result;
+                    }
+                    tf.setFPath(f.getFPath() + "/" + tf.getFName());
+                    tf.setFPid(f.getId());
+                }
+                subList.addAll(temp);
+                total.addAll(temp);
+            }
+            list.clear();
+            list.addAll(subList);
+            subList.clear();
+        }
+        total.forEach(fileUser -> {
+            fileUserMapper.insert(fileUser);
+        });
+        return result;
     }
 
     /**
