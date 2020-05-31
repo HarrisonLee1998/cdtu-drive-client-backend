@@ -154,7 +154,9 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public FileUser selectFileByPath(String uId, String path) {
-        return fileUserMapper.selectFileByPath(uId, path);
+        var fileUser = fileUserMapper.selectFileByPath(uId, path);
+        fileUser.setList(fileUser.getList().stream().filter(f -> f.getIsDelete() == 0).collect(Collectors.toList()));
+        return fileUser;
     }
 
     /**
@@ -290,7 +292,8 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public Node selectFolderTree(String uId) {
-        final List<FileUser>fileUsers = fileUserMapper.selectAllFolder(uId);
+        List<FileUser>fileUsers = fileUserMapper.selectAllFolder(uId);
+        fileUsers = fileUsers.stream().filter(f -> f.getIsDelete() == 0).collect(Collectors.toList());
         FileUser rootFolder = fileUserMapper.selectFileByName(uId, "/");
         if(Objects.isNull(rootFolder)) {
             return null;
@@ -309,7 +312,7 @@ public class FileServiceImpl implements FileService {
     public Boolean rename(String uId, String id, String name) {
         // 先查询出fileUser
         FileUser fileUser = fileUserMapper.selectByPrimaryKey(id);
-        if(Objects.isNull(fileUser)) {
+        if(Objects.isNull(fileUser) || fileUser.getIsDelete() == 1) {
             return false;
         } else {
             // 鉴权
@@ -344,6 +347,10 @@ public class FileServiceImpl implements FileService {
         var targetFile = fileUserMapper.selectByPrimaryKey(desc);
 
         if(Objects.isNull(srcFile) || Objects.isNull(desc) || targetFile.getIsFolder() != 1) {
+            result.setStatus(HttpStatus.BAD_REQUEST);
+            return result;
+        }
+        if(srcFile.getIsDelete() == 1 || targetFile.getIsDelete() == 1) {
             result.setStatus(HttpStatus.BAD_REQUEST);
             return result;
         }
@@ -425,6 +432,10 @@ public class FileServiceImpl implements FileService {
             result.setStatus(HttpStatus.BAD_REQUEST);
             return result;
         }
+        if(srcFile.getIsDelete() == 1 || targetFile.getIsDelete() == 1) {
+            result.setStatus(HttpStatus.BAD_REQUEST);
+            return result;
+        }
 
         // 校验权限
         if(Objects.nonNull(srcFile.getGId()) && Objects.nonNull(targetFile.getGId())) {
@@ -487,6 +498,76 @@ public class FileServiceImpl implements FileService {
             fileUserMapper.insert(fileUser);
         });
         return result;
+    }
+
+    @Override
+    public List<FileUser> selectFileForRecycleBin(String uId) {
+        var list = fileUserMapper.selectAllRecycledFile(uId);
+        var map = new HashMap<String, FileUser>();
+        list.stream().forEach(fileUser -> {
+            map.put(fileUser.getId(), fileUser);
+        });
+        return list.stream().filter(fileUser -> map.get(fileUser.getFPid()) == null).collect(Collectors.toList());
+    }
+
+    @Override
+    public Result handleRecycle(String uId, List<String> ids, Integer flag) {
+        var result = Result.result();
+        // 判断id是否存在
+        for (String id : ids) {
+            var fileUser = fileUserMapper.selectByPrimaryKey(id);
+            if(Objects.isNull(fileUser)) {
+                result.setStatus(HttpStatus.BAD_REQUEST);
+                return result;
+            }
+            if(Objects.nonNull(fileUser.getGId())) {
+                // 组空间
+            } else {
+                // 用户空间
+                if(!Objects.equals(fileUser.getUId(), uId)) {
+                    result.setStatus(HttpStatus.BAD_REQUEST);
+                    return result;
+                }
+            }
+            // 遍历子树
+            List<FileUser>list = new ArrayList<>();
+            List<FileUser>subList = new ArrayList<>();
+            list.add(fileUser);
+            while(list.size() > 0) {
+                for (FileUser f : list) {
+                    fileUserMapper.handleRecycle(f.getId(), flag);
+                    var temp = fileUserMapper.selectFilesByPId(f.getId());
+                    subList.addAll(temp);
+                }
+                list.clear();
+                list.addAll(subList);
+                subList.clear();
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public Boolean delete(String uId, List<String> ids) {
+        // 鉴权及数据校验
+        for (String id : ids) {
+            var fileUser = fileUserMapper.selectByPrimaryKey(id);
+            if(Objects.isNull(fileUser)) {
+                return false;
+            } else if(Objects.nonNull(fileUser.getGId())) {
+                // 组空间
+
+            } else {
+                // 用户空间
+                if(!Objects.equals(fileUser.getUId(), uId)) {
+                    return false;
+                }
+            }
+        }
+        if(ids.size() > 0) {
+            return fileUserMapper.deleteByBatch(ids);
+        }
+        return true;
     }
 
     /**

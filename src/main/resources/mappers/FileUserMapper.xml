@@ -70,7 +70,7 @@
   </select>
   <select id="selectAll" resultMap="BaseResultMap">
     select id, u_id, f_id, f_name, f_path, f_type, f_pid, last_update_date, is_delete
-    from file_user
+    from file_user AND is_delete = 0
   </select>
 
   <select id="checkPermission" resultMap="BaseResultMap">
@@ -96,4 +96,19 @@
   <select id="selectAllFolder" parameterType="java.lang.String" resultMap="BaseResultMap">
     SELECT * FROM file_user WHERE u_id = #{uId} AND is_folder = 1
   </select>
+
+  <select id="selectAllRecycledFile" resultMap="BaseResultMap">
+    SELECT * FROM file_user WHERE u_id = #{uId} AND is_delete = 1
+  </select>
+
+  <update id="handleRecycle">
+    UPDATE file_user SET is_delete = #{flag} WHERE id = #{id}
+  </update>
+
+  <delete id="deleteByBatch">
+    DELETE from file_user WHERE id IN
+    <foreach collection="ids" item="id" open="(" close=")" separator=",">
+      #{id}
+    </foreach>
+  </delete>
 </mapper>

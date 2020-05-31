@@ -30,4 +30,10 @@ public interface FileUserMapper {
     boolean updateDate(@Param("id") String id, @Param("lastUpdateDate") LocalDateTime localDateTime);
 
     List<FileUser> selectAllFolder(String uId);
+
+    List<FileUser> selectAllRecycledFile (String uId);
+
+    boolean handleRecycle(@Param("id") String id, @Param("flag") Integer flag);
+
+    boolean deleteByBatch(@Param("ids") List<String>ids);
 }

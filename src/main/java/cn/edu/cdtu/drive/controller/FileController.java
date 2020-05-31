@@ -207,4 +207,42 @@ public class FileController {
         var login = userService.getLoginFromToken(request);
         return fileService.move(login.getUId(), src, desc);
     }
+
+    @ApiOperation("读取回收站列表")
+    @GetMapping("file/recycle")
+    public Result selectAllFilesForRecycle(HttpServletRequest request) {
+        var login = userService.getLoginFromToken(request);
+        var list = fileService.selectFileForRecycleBin(login.getUId());
+        return Result.result().put("list", list);
+    }
+
+    @ApiOperation("回收站操作")
+    @PatchMapping("file/recycle")
+    public Result handleRecycle(HttpServletRequest request, @RequestBody Map<String, Object>map) {
+        var login = userService.getLoginFromToken(request);
+        var ids = (List<String>) map.get("ids");
+        var flag = (Integer) map.get("flag");
+        if(Objects.isNull(ids) || Objects.isNull(flag) || flag < 0 || flag > 1) {
+            return Result.result().setStatus(HttpStatus.BAD_REQUEST);
+        } else {
+            return fileService.handleRecycle(login.getUId(), ids, flag);
+        }
+    }
+
+    @ApiOperation("删除文件-用户关系")
+    @PostMapping("file/deletion")
+    public Result delete(HttpServletRequest request, @RequestBody Map<String, Object>map) {
+        var login = userService.getLoginFromToken(request);
+        var ids = (List<String>) map.get("ids");
+        if(Objects.isNull(ids)) {
+            return Result.result().setStatus(HttpStatus.BAD_REQUEST);
+        } else {
+            var result = Result.result();
+            var b = fileService.delete(login.getUId(), ids);
+            if(!b) {
+                result.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+            return result;
+        }
+    }
 }

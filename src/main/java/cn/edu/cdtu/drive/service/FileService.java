@@ -24,4 +24,7 @@ public interface FileService {
     Boolean rename(String uId, String id, String name);
     Result move(String uId, String src, String desc);
     Result copy(String uId, String src, String desc);
+    List<FileUser> selectFileForRecycleBin(String uId);
+    Result handleRecycle(String uId, List<String>ids, Integer flag);
+    Boolean delete(String uId, List<String>ids);
 }
