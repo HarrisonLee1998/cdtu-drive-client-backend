@@ -29,4 +29,6 @@ public class Share {
     private String uId;
 
     private String link;
+
+    private String title;
 }

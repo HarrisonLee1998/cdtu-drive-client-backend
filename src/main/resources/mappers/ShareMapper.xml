@@ -10,6 +10,7 @@
     <result column="create_date" jdbcType="TIMESTAMP" property="createDate" />
     <result column="expire_date" jdbcType="TIMESTAMP" property="expireDate" />
     <result column="u_id" jdbcType="VARCHAR" property="uId" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
   </resultMap>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
     delete from share
@@ -18,10 +19,10 @@
   <insert id="insert" parameterType="cn.edu.cdtu.drive.pojo.Share">
     insert into share (id, pwd, view_times, 
       save_times, download_times, create_date, 
-      expire_date, u_id)
+      expire_date, u_id, title)
     values (#{id,jdbcType=CHAR}, #{pwd,jdbcType=CHAR}, #{viewTimes,jdbcType=INTEGER},
       #{saveTimes,jdbcType=INTEGER}, #{downloadTimes,jdbcType=INTEGER}, #{createDate,jdbcType=TIMESTAMP}, 
-      #{expireDate,jdbcType=TIMESTAMP}, #{uId,jdbcType=VARCHAR})
+      #{expireDate,jdbcType=TIMESTAMP}, #{uId,jdbcType=VARCHAR}, #{title,jdbcType=VARCHAR})
   </insert>
   <update id="updateByPrimaryKey" parameterType="cn.edu.cdtu.drive.pojo.Share">
     update share
@@ -35,12 +36,12 @@
     where id = #{id,jdbcType=CHAR}
   </update>
   <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
-    select id, pwd, view_times, save_times, download_times, create_date, expire_date, u_id
+    select id, pwd, view_times, save_times, download_times, create_date, expire_date, u_id, title
     from share
     where id = #{id,jdbcType=CHAR}
   </select>
   <select id="selectAll" resultMap="BaseResultMap">
-    select id, pwd, view_times, save_times, download_times, create_date, expire_date, u_id
+    select id, pwd, view_times, save_times, download_times, create_date, expire_date, u_id, title
     from share
   </select>
 
@@ -59,11 +60,4 @@
   <update id="addDownloadTimes">
     UPDATE file_user SET download_times = download_times + 1 WHERE id = #{shareId}
   </update>
-
-  <insert id="saveShareFileUser">
-    INSERT INTO share_file_user VALUES
-    <foreach collection="ids" item="fuId" separator=",">
-      (#{shareId}, #{fuId})
-    </foreach>
-  </insert>
 </mapper>

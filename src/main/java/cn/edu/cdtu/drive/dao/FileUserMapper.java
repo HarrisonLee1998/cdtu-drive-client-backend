@@ -36,4 +36,6 @@ public interface FileUserMapper {
     boolean handleRecycle(@Param("id") String id, @Param("flag") Integer flag);
 
     boolean deleteByBatch(@Param("ids") List<String> ids);
+
+    boolean insertByBatch(List<FileUser>list);
 }

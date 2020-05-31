@@ -18,6 +18,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -37,12 +39,16 @@ public class RequestInterceptor implements HandlerInterceptor {
 
     private static ObjectMapper objectMapper = new ObjectMapper();
 
+    private static List<String>white = Arrays.asList("/share/check");
+
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-
         final String url = request.getRequestURI();
         final String method = request.getMethod();
+        if(white.contains(url)) {
+            return true;
+        }
         if(Objects.equals("OPTIONS", method)) {
             return true;
         }

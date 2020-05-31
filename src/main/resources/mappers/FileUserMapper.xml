@@ -13,6 +13,8 @@
     <result column="f_size" jdbcType="BIGINT" property="fSize" />
     <result column="last_update_date" jdbcType="TIMESTAMP" property="lastUpdateDate" />
     <result column="is_delete" jdbcType="INTEGER" property="isDelete" />
+    <result column="share_id" jdbcType="CHAR" property="shareId"/>
+    <result column="g_id" jdbcType="CHAR" property="gId"/>
   </resultMap>
 
   <resultMap id="WithSubItem" type="cn.edu.cdtu.drive.pojo.FileUser">
@@ -27,6 +29,8 @@
     <result column="f_size" jdbcType="BIGINT" property="fSize" />
     <result column="last_update_date" jdbcType="TIMESTAMP" property="lastUpdateDate" />
     <result column="is_delete" jdbcType="INTEGER" property="isDelete" />
+    <result column="share_id" jdbcType="CHAR" property="shareId"/>
+    <result column="g_id" jdbcType="CHAR" property="gId"/>
     <association property="list" select="cn.edu.cdtu.drive.dao.FileUserMapper.selectFilesByPId" column="id"/>
   </resultMap>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
@@ -36,13 +40,13 @@
   <insert id="insert" parameterType="cn.edu.cdtu.drive.pojo.FileUser">
     insert into file_user (id, u_id, f_id, f_name, f_path,  is_folder,
       f_type, f_pid, f_size, last_update_date,
-      is_delete)
+      is_delete,share_id, g_id)
     values (#{id,jdbcType=CHAR}, #{uId,jdbcType=VARCHAR},
     #{fId,jdbcType=CHAR}, #{fName,jdbcType=VARCHAR}, #{fPath,jdbcType=VARCHAR},
       #{isFolder,jdbcType=INTEGER},
       #{fType,jdbcType=VARCHAR}, #{fPid,jdbcType=CHAR},
       #{fSize,jdbcType=BIGINT}, #{lastUpdateDate,jdbcType=TIMESTAMP},
-      #{isDelete,jdbcType=INTEGER})
+      #{isDelete,jdbcType=INTEGER}, #{shareId,jdbcType=CHAR}, #{gId,jdbcType=CHAR})
   </insert>
   <update id="updateByPrimaryKey" parameterType="cn.edu.cdtu.drive.pojo.FileUser">
     update file_user
@@ -60,12 +64,12 @@
   </update>
   <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
     select id, u_id, f_id, f_name, f_path,is_folder, f_type,
-    f_pid, f_size,last_update_date, is_delete
+    f_pid, f_size,last_update_date, is_delete, share_id, g_id
     from file_user
     where id = #{id,jdbcType=CHAR}
   </select>
   <select id="selectAll" resultMap="BaseResultMap">
-    select id, u_id, f_id, f_name, f_path, f_type, f_pid, last_update_date, is_delete
+    select id, u_id, f_id, f_name, f_path, f_type, f_pid, last_update_date, is_delete, share_id, g_id
     from file_user AND is_delete = 0
   </select>
 
@@ -107,4 +111,19 @@
       #{id}
     </foreach>
   </delete>
+
+  <insert id="insertByBatch">
+    INSERT INTO file_user (id, u_id, f_id, f_name, f_path,  is_folder,
+      f_type, f_pid, f_size, last_update_date,
+      is_delete,share_id, g_id)
+    VALUES
+    <foreach collection="list" item="f" separator=",">
+      (#{f.id,jdbcType=CHAR}, #{f.uId,jdbcType=VARCHAR},
+      #{f.fId,jdbcType=CHAR}, #{f.fName,jdbcType=VARCHAR}, #{f.fPath,jdbcType=VARCHAR},
+      #{f.isFolder,jdbcType=INTEGER},
+      #{f.fType,jdbcType=VARCHAR}, #{f.fPid,jdbcType=CHAR},
+      #{f.fSize,jdbcType=BIGINT}, #{f.lastUpdateDate,jdbcType=TIMESTAMP},
+      #{f.isDelete,jdbcType=INTEGER}, #{f.shareId,jdbcType=CHAR}, #{f.gId,jdbcType=CHAR})
+    </foreach>
+  </insert>
 </mapper>
