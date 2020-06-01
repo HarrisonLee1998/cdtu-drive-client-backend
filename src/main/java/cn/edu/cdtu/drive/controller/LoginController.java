@@ -10,6 +10,8 @@ import cn.edu.cdtu.drive.util.CookieUtil;
 import cn.edu.cdtu.drive.util.JWTUtil;
 import cn.edu.cdtu.drive.util.RedisUtil;
 import cn.edu.cdtu.drive.util.Result;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,12 +46,15 @@ public class LoginController {
 
     private final static int LOGIN_EXPIRE_SECONDS = 60 * 60;
 
+    private final static Logger logger = LoggerFactory.getLogger(LoginController.class);
+
     @ApiOperation("用户登录")
     @PostMapping(value = {"login", "admin/login"})
     public Result login(HttpServletRequest request, HttpServletResponse response,  @RequestBody @Valid User user) {
         String ip = request.getRemoteAddr();
         final Result result = Result.result();
-        Map<String, Object>map = userService.checkUserLogin(user);
+        Map<String, Object>map = userService.checkUserLogin(user,
+                request.getRequestURI().startsWith("/admin") ? 1 : 0);
         final int i = (Integer) map.get("status");
         if(i == 401) {
             result.setStatus(HttpStatus.UNAUTHORIZED);
@@ -115,8 +120,12 @@ public class LoginController {
     }
 
     @ApiOperation("路由鉴权")
-    @GetMapping("login/check")
-    public void check() {
+    @GetMapping(value = {"login/check", "admin/login/check"})
+    public void check(HttpServletRequest request) {
+        if(request.getRequestURI().startsWith("/admin")) {
+            logger.info("管理员权限验证");
+            logger.info(request.getParameter("path"));
+        }
     }
 
     @ApiOperation("登出")

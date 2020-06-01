@@ -11,7 +11,7 @@ import java.util.Map;
  * @date 2020/5/17 14:17
  */
 public interface UserService {
-    Map<String, Object> checkUserLogin(User user);
+    Map<String, Object> checkUserLogin(User user, Integer type);
     Login saveLoginInfo(User user, String ip, int state);
 
     Login getLoginFromToken(HttpServletRequest request);

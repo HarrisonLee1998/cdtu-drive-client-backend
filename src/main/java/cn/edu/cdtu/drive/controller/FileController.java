@@ -251,7 +251,7 @@ public class FileController {
     }
 
     @ApiOperation("获取分享的目录")
-    @GetMapping("file/folder/share")
+    @GetMapping("share/file/folder")
     public Result selectFileByPathForShare(HttpServletRequest request,
                                            @RequestParam String shareId, @RequestParam String path) {
         var result = Result.result();

@@ -35,13 +35,17 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public Map<String, Object> checkUserLogin(User user) {
+    public Map<String, Object> checkUserLogin(User user, Integer type) {
         Map<String, Object>map = new HashMap<>();
         if(Objects.isNull(user) || Objects.isNull(user.getId()) || Objects.isNull(user.getPassword())) {
             map.put("status", 401);
         } else {
             User user1 = userMapper.selectByPrimaryKey(user.getId());
             if(Objects.isNull(user1)) {
+                map.put("status", 401);
+                return map;
+            }
+            if(Objects.isNull(user1.getRoleId()) && type == 1) {
                 map.put("status", 401);
                 return map;
             }

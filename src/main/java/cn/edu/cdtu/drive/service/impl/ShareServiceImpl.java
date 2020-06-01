@@ -6,11 +6,12 @@ import cn.edu.cdtu.drive.pojo.FileUser;
 import cn.edu.cdtu.drive.pojo.Share;
 import cn.edu.cdtu.drive.service.ShareService;
 import cn.edu.cdtu.drive.service.UserService;
-import cn.edu.cdtu.drive.util.CookieUtil;
 import cn.edu.cdtu.drive.util.Result;
 import cn.edu.cdtu.drive.util.UUIDHelper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -40,6 +41,8 @@ public class ShareServiceImpl implements ShareService {
 
     @Value("share.link.prefix")
     private String shareLinkPrefix;
+
+    private Logger logger = LoggerFactory.getLogger(ShareServiceImpl.class);
 
     private static List<String> sortFields = Arrays.asList("create_date", "view_times", "save_times", "download_times");
 
@@ -156,62 +159,68 @@ public class ShareServiceImpl implements ShareService {
             result.setStatus(HttpStatus.NOT_FOUND);
             return result;
         }
-
-        for (String token : shareTokens) {
-            if(Objects.equals(token, DigestUtils.md5DigestAsHex((share.getId() + share.getPwd()).getBytes()))) {
-                return result;
-            }
+        result.put("share", share);
+        var token = DigestUtils.md5DigestAsHex((share.getId() + share.getPwd()).getBytes());
+        if(shareTokens.contains(token)) {
+            // 如果cookie中存在当前分享的记录
+            return result;
         }
-        result.put("SHARE_TOKEN", DigestUtils.md5DigestAsHex((share.getId() + share.getPwd()).getBytes()));
+        result.put("SHARE_TOKEN", token);
         if(Objects.equals(uId, share.getUId())) {
+            // 如果当前存在已登录用户，且该分享的创建者是该用户
             return result;
         }
         if(Objects.equals(share.getPwd(), pwd)) {
+            // 如果当前的密码匹配
             return result;
         } else if(Objects.nonNull(share.getExpireDate()) &&
                 Duration.between(LocalDateTime.now(), share.getExpireDate()).toMillis() < 0) {
+            // 当前的密码匹配，但是该分享已过期
             return result;
         } else {
+            // 其他情况，需要用户提供正确的提取码
             result.setStatus(HttpStatus.BAD_REQUEST);
+            // 重置数据
             result.put("msg", "提取码不正确");
             result.put("SHARE_TOKEN", null);
+            result.put("share", null);
             return result;
         }
     }
 
     @Override
     public Boolean checkShare(HttpServletRequest request, String shareId) {
-        CookieUtil.printCookies(request);
         if(Objects.isNull(shareId) || Objects.isNull(request)) {
+            // 如果分享的id或者请求为空
+            logger.info("分享的id或者请求为空");
             return false;
         }
         var cookies = request.getCookies();
         if(Objects.nonNull(cookies)){
             var share = shareMapper.selectByPrimaryKey(shareId);
+            // The result of this method can be a negative period if the end is before the start.
+            if(Objects.isNull(share)
+                    || Duration.between(LocalDateTime.now(), share.getExpireDate()).toSeconds() < 0) {
+                // 如果请求的分享不存在或已过期
+                logger.info("请求的分享不存在或已过期");
+                return false;
+            }
             var login = userService.getLoginFromToken(request);
             if(Objects.nonNull(login) && Objects.equals(login.getUId(), share.getUId())) {
+                // 如果该分享的创建者为当前用户（可能不存在）
+                logger.info("该分享的创建者为当前用户");
                 return true;
             }
-            if(Objects.isNull(share)) {
-                return false;
-            }
             var s = DigestUtils.md5DigestAsHex((share.getId() + share.getPwd()).getBytes());
-            var list = new ArrayList<String>();
             for (Cookie cookie : cookies) {
-                if(cookie.getName().startsWith("SHARE_TOKEN")) {
-                    list.add(cookie.getValue());
-                }
-            }
-            var b = list.contains(s);
-            if(!b) {
-                return false;
-            } else {
-                b = Duration.between(LocalDateTime.now(), share.getExpireDate()).toMillis() < 0;
-                if(!b) {
-                    return false;
+                // 如果存在该分享的token
+                if(cookie.getName().startsWith("SHARE_TOKEN") && Objects.equals(cookie.getValue(), s)) {
+                    logger.info("存在该分享的token");
+                    return true;
                 }
             }
         }
+        logger.info("cookie为空");
         return false;
     }
 

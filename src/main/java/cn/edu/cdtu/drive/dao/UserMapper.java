@@ -19,4 +19,12 @@ public interface UserMapper {
     // ----------------------------
 
     int updateUSS(@Param("uId")String uId, @Param("size") Long size);
+
+    // 批量插入
+    default void save(List<User> list){
+        System.out.println("=================");
+        for (User user : list) {
+            System.out.println(user);
+        }
+    }
 }

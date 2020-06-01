@@ -1,12 +1,13 @@
 package cn.edu.cdtu.drive.controller;
 
 import cn.edu.cdtu.drive.annotation.ApiOperation;
+import cn.edu.cdtu.drive.pojo.Share;
 import cn.edu.cdtu.drive.service.ShareService;
 import cn.edu.cdtu.drive.service.UserService;
-import cn.edu.cdtu.drive.util.CookieUtil;
 import cn.edu.cdtu.drive.util.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.Cookie;
@@ -71,7 +72,6 @@ public class ShareController {
     @GetMapping("share/check")
     public Result check(HttpServletRequest request, HttpServletResponse response,
                         @RequestParam String shareId, @RequestParam String pwd) {
-        CookieUtil.printCookies(request);
         var login = userService.getLoginFromToken(request);
         List<String>shareTokens = new ArrayList<>();
         if(Objects.nonNull(request.getCookies())) {
@@ -87,12 +87,15 @@ public class ShareController {
         } else {
             result = shareService.checkShare(shareTokens, login.getUId(), shareId, pwd);
         }
-        var token = result.getMap().get("SHARE_TOKEN");
-        if(Objects.nonNull(token)) {
-            Cookie cookie = new Cookie("SHARE_TOKEN" + shareId, (String) token);
+        var share = (Share)result.getMap().get("share");
+        if(Objects.nonNull(share)) {
+            String token = DigestUtils.md5DigestAsHex((share.getId() + share.getPwd()).getBytes());
+            Cookie cookie = new Cookie("SHARE_TOKEN" + shareId, token);
             cookie.setMaxAge(3600*24*1000);
+            cookie.setPath("/share");
             response.addCookie(cookie);
         }
+        result.put("share", null);
         return result;
     }
 }
