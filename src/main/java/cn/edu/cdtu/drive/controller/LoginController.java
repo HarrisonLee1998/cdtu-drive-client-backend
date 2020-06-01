@@ -125,10 +125,12 @@ public class LoginController {
         final String token = CookieUtil.getCookie(request, "token");
         redisUtil.del(token);
         Arrays.stream(request.getCookies()).forEach(cookie -> {
-            cookie.setValue(null);
-            cookie.setMaxAge(0);
-            cookie.setPath("/");
-            response.addCookie(cookie);
+            if(Objects.equals(cookie.getName(), "token")) {
+                cookie.setValue(null);
+                cookie.setMaxAge(0);
+                cookie.setPath("/");
+                response.addCookie(cookie);
+            }
         });
     }
 }

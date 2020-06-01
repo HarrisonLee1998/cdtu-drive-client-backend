@@ -126,4 +126,8 @@
       #{f.isDelete,jdbcType=INTEGER}, #{f.shareId,jdbcType=CHAR}, #{f.gId,jdbcType=CHAR})
     </foreach>
   </insert>
+
+  <select id="selectFileByPathForShare" resultMap="WithSubItem">
+    SELECT * FROM file_user WHERE share_id = #{shareId} AND f_path = #{path}
+  </select>
 </mapper>

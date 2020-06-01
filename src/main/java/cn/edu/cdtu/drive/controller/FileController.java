@@ -5,6 +5,7 @@ import cn.edu.cdtu.drive.pojo.Chunk;
 import cn.edu.cdtu.drive.pojo.FileUser;
 import cn.edu.cdtu.drive.pojo.Login;
 import cn.edu.cdtu.drive.service.FileService;
+import cn.edu.cdtu.drive.service.ShareService;
 import cn.edu.cdtu.drive.service.UserService;
 import cn.edu.cdtu.drive.util.CookieUtil;
 import cn.edu.cdtu.drive.util.Node;
@@ -37,6 +38,9 @@ public class FileController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private ShareService shareService;
 
     /**
      * 上传分块
@@ -244,5 +248,27 @@ public class FileController {
             }
             return result;
         }
+    }
+
+    @ApiOperation("获取分享的目录")
+    @GetMapping("file/folder/share")
+    public Result selectFileByPathForShare(HttpServletRequest request,
+                                           @RequestParam String shareId, @RequestParam String path) {
+        var result = Result.result();
+        var b = shareService.checkShare(request, shareId);
+        if(!b) {
+            result.setStatus(HttpStatus.UNAUTHORIZED);
+            return result;
+        } else {
+            var fileUser = fileService.selectFileByPathForShare(shareId, path);
+            var share = shareService.selectShareById(shareId);
+            if(Objects.isNull(fileUser) || Objects.isNull(share)) {
+                result.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+            } else {
+                result.put("share", share);
+                result.put("list", fileUser.getList());
+            }
+        }
+        return result;
     }
 }

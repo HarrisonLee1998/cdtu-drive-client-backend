@@ -5,14 +5,20 @@ import cn.edu.cdtu.drive.dao.ShareMapper;
 import cn.edu.cdtu.drive.pojo.FileUser;
 import cn.edu.cdtu.drive.pojo.Share;
 import cn.edu.cdtu.drive.service.ShareService;
+import cn.edu.cdtu.drive.service.UserService;
+import cn.edu.cdtu.drive.util.CookieUtil;
+import cn.edu.cdtu.drive.util.Result;
 import cn.edu.cdtu.drive.util.UUIDHelper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -29,6 +35,8 @@ public class ShareServiceImpl implements ShareService {
     @Autowired
     private FileUserMapper fileUserMapper;
 
+    @Autowired
+    private UserService userService;
 
     @Value("share.link.prefix")
     private String shareLinkPrefix;
@@ -87,6 +95,7 @@ public class ShareServiceImpl implements ShareService {
         rootFileUser.setId(DigestUtils.md5DigestAsHex((share.getId() + uId).getBytes()));
         rootFileUser.setShareId(share.getId());
         rootFileUser.setFName("/");
+        rootFileUser.setFPath("/");
         rootFileUser.setIsFolder(1);
         result = fileUserMapper.insert(rootFileUser) > 0;
         if(!result) {
@@ -96,6 +105,8 @@ public class ShareServiceImpl implements ShareService {
         list.forEach(f -> {
             f.setFPid(rootFileUser.getId());
             f.setFPath("/" + f.getFName());
+            f.setShareId(share.getId());
+            f.setUId(null);
         });
 
         List<FileUser>total = new ArrayList<>();
@@ -108,6 +119,8 @@ public class ShareServiceImpl implements ShareService {
                 temp.forEach(f -> {
                     f.setFPath(fileUser.getFPath() + "/" + f.getFName());
                     f.setFPid(fileUser.getId());
+                    f.setShareId(share.getId());
+                    f.setUId(null);
                 });
                 subList.addAll(temp);
             }
@@ -136,24 +149,74 @@ public class ShareServiceImpl implements ShareService {
     }
 
     @Override
-    public Boolean checkShare(String uId, String shareId, String pwd) {
-        if(Objects.isNull(shareId) || Objects.isNull(pwd) || shareId.length() != 12 || pwd.length() != 4) {
-            return false;
-        }
+    public Result checkShare(List<String> shareTokens, String uId, String shareId, String pwd) {
+        var result = Result.result();
         var share = shareMapper.selectByPrimaryKey(shareId);
         if(Objects.isNull(share)) {
-            return false;
+            result.setStatus(HttpStatus.NOT_FOUND);
+            return result;
         }
+
+        for (String token : shareTokens) {
+            if(Objects.equals(token, DigestUtils.md5DigestAsHex((share.getId() + share.getPwd()).getBytes()))) {
+                return result;
+            }
+        }
+        result.put("SHARE_TOKEN", DigestUtils.md5DigestAsHex((share.getId() + share.getPwd()).getBytes()));
         if(Objects.equals(uId, share.getUId())) {
-            return true;
+            return result;
         }
         if(Objects.equals(share.getPwd(), pwd)) {
-            return true;
+            return result;
         } else if(Objects.nonNull(share.getExpireDate()) &&
                 Duration.between(LocalDateTime.now(), share.getExpireDate()).toMillis() < 0) {
-            return true;
+            return result;
         } else {
+            result.setStatus(HttpStatus.BAD_REQUEST);
+            result.put("msg", "提取码不正确");
+            result.put("SHARE_TOKEN", null);
+            return result;
+        }
+    }
+
+    @Override
+    public Boolean checkShare(HttpServletRequest request, String shareId) {
+        CookieUtil.printCookies(request);
+        if(Objects.isNull(shareId) || Objects.isNull(request)) {
             return false;
         }
+        var cookies = request.getCookies();
+        if(Objects.nonNull(cookies)){
+            var share = shareMapper.selectByPrimaryKey(shareId);
+            var login = userService.getLoginFromToken(request);
+            if(Objects.nonNull(login) && Objects.equals(login.getUId(), share.getUId())) {
+                return true;
+            }
+            if(Objects.isNull(share)) {
+                return false;
+            }
+            var s = DigestUtils.md5DigestAsHex((share.getId() + share.getPwd()).getBytes());
+            var list = new ArrayList<String>();
+            for (Cookie cookie : cookies) {
+                if(cookie.getName().startsWith("SHARE_TOKEN")) {
+                    list.add(cookie.getValue());
+                }
+            }
+            var b = list.contains(s);
+            if(!b) {
+                return false;
+            } else {
+                b = Duration.between(LocalDateTime.now(), share.getExpireDate()).toMillis() < 0;
+                if(!b) {
+                    return false;
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public Share selectShareById(String shareId) {
+        return shareMapper.selectByPrimaryKey(shareId);
     }
 }

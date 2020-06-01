@@ -3,13 +3,16 @@ package cn.edu.cdtu.drive.controller;
 import cn.edu.cdtu.drive.annotation.ApiOperation;
 import cn.edu.cdtu.drive.service.ShareService;
 import cn.edu.cdtu.drive.service.UserService;
+import cn.edu.cdtu.drive.util.CookieUtil;
 import cn.edu.cdtu.drive.util.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -68,18 +71,27 @@ public class ShareController {
     @GetMapping("share/check")
     public Result check(HttpServletRequest request, HttpServletResponse response,
                         @RequestParam String shareId, @RequestParam String pwd) {
-        var result = Result.result();
+        CookieUtil.printCookies(request);
         var login = userService.getLoginFromToken(request);
-        boolean b;
-        if(Objects.isNull(login)) {
-            b = shareService.checkShare(null, shareId, pwd);
-        } else {
-            b = shareService.checkShare(login.getUId(), shareId, pwd);
+        List<String>shareTokens = new ArrayList<>();
+        if(Objects.nonNull(request.getCookies())) {
+            for (Cookie cookie : request.getCookies()) {
+                if(cookie.getName().startsWith("SHARE_TOKEN")) {
+                    shareTokens.add(cookie.getValue());
+                }
+            }
         }
-        if(!b) {
-            result.setStatus(HttpStatus.UNAUTHORIZED);
+        var result = Result.result();
+        if(Objects.isNull(login)) {
+            result = shareService.checkShare(shareTokens,null, shareId, pwd);
         } else {
-
+            result = shareService.checkShare(shareTokens, login.getUId(), shareId, pwd);
+        }
+        var token = result.getMap().get("SHARE_TOKEN");
+        if(Objects.nonNull(token)) {
+            Cookie cookie = new Cookie("SHARE_TOKEN" + shareId, (String) token);
+            cookie.setMaxAge(3600*24*1000);
+            response.addCookie(cookie);
         }
         return result;
     }

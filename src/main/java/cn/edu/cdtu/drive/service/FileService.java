@@ -27,4 +27,7 @@ public interface FileService {
     List<FileUser> selectFileForRecycleBin(String uId);
     Result handleRecycle(String uId, List<String>ids, Integer flag);
     Boolean delete(String uId, List<String>ids);
+
+    // Share Space
+    FileUser selectFileByPathForShare(String shareId, String path);
 }

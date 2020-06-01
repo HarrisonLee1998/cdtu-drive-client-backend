@@ -38,4 +38,9 @@ public interface FileUserMapper {
     boolean deleteByBatch(@Param("ids") List<String> ids);
 
     boolean insertByBatch(List<FileUser>list);
+
+
+    // share
+
+    FileUser selectFileByPathForShare(@Param("shareId") String shareId, @Param("path") String path);
 }

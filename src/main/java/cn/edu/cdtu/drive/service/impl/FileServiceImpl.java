@@ -570,6 +570,11 @@ public class FileServiceImpl implements FileService {
         return true;
     }
 
+    @Override
+    public FileUser selectFileByPathForShare(String shareId, String path) {
+        return fileUserMapper.selectFileByPathForShare(shareId, path);
+    }
+
     /**
      * 深度优先遍历
      */
