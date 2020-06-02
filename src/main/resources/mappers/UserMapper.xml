@@ -5,14 +5,14 @@
     <id column="id" jdbcType="VARCHAR" property="id" />
     <result column="username" jdbcType="VARCHAR" property="username" />
     <result column="pwd" jdbcType="VARCHAR" property="password" />
-    <result column="gender" jdbcType="VARCHAR" property="gender" />
+    <result column="gender" jdbcType="INTEGER" property="gender" />
     <result column="avatar" jdbcType="VARCHAR" property="avatar" />
     <result column="brief" jdbcType="VARCHAR" property="brief" />
     <result column="email" jdbcType="VARCHAR" property="email" />
-    <result column="u_type" jdbcType="VARCHAR" property="type" />
+    <result column="u_type" jdbcType="INTEGER" property="type" />
     <result column="t_ss" jdbcType="BIGINT" property="tSs" />
     <result column="u_ss" jdbcType="BIGINT" property="uSs" />
-    <result column="dept_id" jdbcType="CHAR" property="deptId" />
+    <result column="dept_id" jdbcType="VARCHAR" property="deptId" />
     <result column="u_limit" jdbcType="INTEGER" property="limit" />
     <result column="role_id" jdbcType="INTEGER" property="roleId" />
   </resultMap>
@@ -26,23 +26,23 @@
       email, u_type, t_ss, u_ss,
       dept_id, u_limit, role_id)
     values (#{id,jdbcType=VARCHAR}, #{username,jdbcType=VARCHAR}, #{pwd,jdbcType=VARCHAR},
-      #{gender,jdbcType=VARCHAR}, #{avatar,jdbcType=VARCHAR}, #{brief,jdbcType=VARCHAR}, 
-      #{email,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{tSs,jdbcType=BIGINT}, #{uSs,jdbcType=BIGINT}, 
-      #{deptId,jdbcType=CHAR}, #{u_limit,jdbcType=INTEGER}), #{roleId,jdbcType=INTEGER})
+      #{gender,jdbcType=INTEGER}, #{avatar,jdbcType=VARCHAR}, #{brief,jdbcType=VARCHAR},
+      #{email,jdbcType=VARCHAR}, #{type,jdbcType=INTEGER}, #{tSs,jdbcType=BIGINT}, #{uSs,jdbcType=BIGINT},
+      #{deptId,jdbcType=VARCHAR}, #{u_limit,jdbcType=INTEGER}), #{roleId,jdbcType=INTEGER})
   </insert>
   <update id="updateByPrimaryKey" parameterType="cn.edu.cdtu.drive.pojo.User">
     update user
     set username = #{username,jdbcType=VARCHAR},
       pwd = #{pwd,jdbcType=VARCHAR},
-      gender = #{gender,jdbcType=VARCHAR},
+      gender = #{gender,jdbcType=INTEGER},
       avatar = #{avatar,jdbcType=VARCHAR},
       brief = #{brief,jdbcType=VARCHAR},
       email = #{email,jdbcType=VARCHAR},
-      u_type = #{type,jdbcType=VARCHAR},
+      u_type = #{type,jdbcType=INTEGER},
       t_ss = #{tSs,jdbcType=BIGINT},
       u_ss = #{uSs,jdbcType=BIGINT},
-      dept_id = #{deptId,jdbcType=CHAR},
-      u_limit = #{u_limit,jdbcType=INTEGER},
+      dept_id = #{deptId,jdbcType=VARCHAR},
+      u_limit = #{limit,jdbcType=INTEGER},
       role_id = #{roleId,jdbcType=INTEGER}
     where id = #{id,jdbcType=VARCHAR}
   </update>
@@ -60,5 +60,81 @@
 
   <update id="updateUSS">
     UPDATE user SET u_ss = u_ss + #{size} WHERE id = #{uId}
+  </update>
+
+  <insert id="insertByBatch">
+    INSERT INTO user (id, username, pwd, gender, u_type, dept_id) VALUES
+    <foreach collection="list" item="item" separator=",">
+      (#{item.id}, #{item.username}, #{item.password}, #{item.gender}, #{item.type}, #{item.deptId})
+    </foreach>
+  </insert>
+
+  <select id="selectByDept" resultMap="BaseResultMap">
+    SELECT * FROM user WHERE dept_id IN
+    <foreach collection="ids" item="id" separator="," open="(" close=")">
+      #{id}
+    </foreach>
+    AND u_limit = #{limit}
+    <if test="type == 0">
+      AND u_type = 0
+    </if>
+    <if test="type == 1">
+      AND u_type = 1
+    </if>
+    <if test="type != 2">
+      AND role_id IS NULL
+    </if>
+    <if test="type == 2">
+      AND role_id IS NOT NULL
+    </if>
+  </select>
+
+  <update id="setLimit">
+    UPDATE user SET u_limit = #{limit}
+    WHERE id IN
+    <foreach collection="ids" item="id" open="(" close=")" separator=",">
+      #{id}
+    </foreach>
+  </update>
+
+  <!-- 部分修改用户的信息 -->
+  <update id="partialUpdate" parameterType="cn.edu.cdtu.drive.pojo.User">
+    UPDATE user SET
+    <trim suffixOverrides=",">
+      <if test="password != null">
+        pwd = #{pwd,jdbcType=VARCHAR},
+      </if>
+      <if test="gender != null">
+        gender = #{gender,jdbcType=INTEGER},
+      </if>
+      <if test="avatar != null">
+        avatar = #{avatar,jdbcType=VARCHAR},
+      </if>
+      <if test="brief != null">
+        brief = #{brief,jdbcType=VARCHAR},
+      </if>
+      <if test="email != null">
+        email = #{email,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null">
+        u_type = #{type,jdbcType=INTEGER},
+      </if>
+      <if test="tSs != null">
+        t_ss = #{tSs,jdbcType=BIGINT},
+      </if>
+      <if test="uSs != null">
+        u_ss = #{uSs,jdbcType=BIGINT},
+      </if>
+      <if test="deptId != null">
+        dept_id = #{deptId,jdbcType=VARCHAR},
+      </if>
+      <if test="limit != null">
+        u_limit = #{limit,jdbcType=INTEGER},
+      </if>
+      <if test="roleId != null">
+        role_id = #{roleId,jdbcType=INTEGER}
+      </if>
+    </trim>
+    where id = #{id,jdbcType=VARCHAR}
   </update>
 </mapper>

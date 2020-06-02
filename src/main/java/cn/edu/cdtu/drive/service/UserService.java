@@ -2,8 +2,12 @@ package cn.edu.cdtu.drive.service;
 
 import cn.edu.cdtu.drive.pojo.Login;
 import cn.edu.cdtu.drive.pojo.User;
+import com.github.pagehelper.PageInfo;
+import org.apache.ibatis.annotations.Param;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,4 +22,13 @@ public interface UserService {
     User getUserFromToken(HttpServletRequest request);
 
     User getUserById(String id);
+
+    Boolean insertByBatch(MultipartFile file);
+
+    PageInfo<User>selectUserByPage(Integer pageNo, Integer pageSize,
+                                   String deptId, Integer limit, Integer type);
+
+    boolean setLimit(@Param("ids") List<String> ids, @Param("limit") Integer limit);
+
+    boolean partialUpdate(User user);
 }

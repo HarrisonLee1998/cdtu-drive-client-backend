@@ -7,13 +7,13 @@ import cn.edu.cdtu.drive.pojo.User;
 import cn.edu.cdtu.drive.service.RoleService;
 import cn.edu.cdtu.drive.service.UserService;
 import cn.edu.cdtu.drive.util.CookieUtil;
-import cn.edu.cdtu.drive.util.JWTUtil;
 import cn.edu.cdtu.drive.util.RedisUtil;
 import cn.edu.cdtu.drive.util.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -81,10 +81,12 @@ public class LoginController {
 
         map.clear();
         map.put("id", user.getId());
-        final String token = JWTUtil.generate(map);
+        // final String token = JWTUtil.generate(map);
+        final String token = DigestUtils.md5DigestAsHex((user.getId() + user.getPassword()).getBytes());
         final boolean b = redisUtil.set(token, login, LOGIN_EXPIRE_SECONDS);
 
         boolean flag = false;
+        // 检查是否已存在相应的cookie； 如果已存在，更新对应的值
         if(Objects.nonNull(request.getCookies())) {
             for (Cookie c : request.getCookies()) {
                 if(c.getName().equals("token")) {
@@ -95,9 +97,11 @@ public class LoginController {
                 }
             }
         }
+        // 如果已存在，就不设置了
         if(!flag) {
             Cookie cookie = new Cookie("token", token);
             cookie.setPath("/");
+            cookie.setMaxAge(LOGIN_EXPIRE_SECONDS);
             response.addCookie(cookie);
         }
         result.put("user", user);
@@ -121,11 +125,21 @@ public class LoginController {
 
     @ApiOperation("路由鉴权")
     @GetMapping(value = {"login/check", "admin/login/check"})
-    public void check(HttpServletRequest request) {
+    public Result check(HttpServletRequest request) {
+        var result = Result.result();
         if(request.getRequestURI().startsWith("/admin")) {
             logger.info("管理员权限验证");
-            logger.info(request.getParameter("path"));
+            var path = request.getParameter("path");
+            if(Objects.equals("/", path)) {
+                return result;
+            }
+            var b = roleService.checkAdminMenu(request, path);
+            if(!b) {
+                logger.info("当前管理员对页面" + path + "不具备访问权限");
+                result.setStatus(HttpStatus.UNAUTHORIZED);
+            }
         }
+        return result;
     }
 
     @ApiOperation("登出")

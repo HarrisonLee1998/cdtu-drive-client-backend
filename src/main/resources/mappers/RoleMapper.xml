@@ -7,6 +7,20 @@
     <result column="create_date" jdbcType="TIMESTAMP" property="createDate" />
     <result column="last_update_date" jdbcType="TIMESTAMP" property="lastUpdateDate" />
   </resultMap>
+
+  <resultMap id="WithPermission" type="cn.edu.cdtu.drive.pojo.Role">
+    <id column="r_id" jdbcType="INTEGER" property="id" />
+    <result column="r_title" jdbcType="VARCHAR" property="title" />
+    <result column="r_create_date" jdbcType="TIMESTAMP" property="createDate" />
+    <result column="r_last_update_date" jdbcType="TIMESTAMP" property="lastUpdateDate" />
+    <collection property="permissions" ofType="cn.edu.cdtu.drive.pojo.Permission">
+      <id column="p_id" jdbcType="INTEGER" property="id" />
+      <result column="p_title" jdbcType="VARCHAR" property="title" />
+      <result column="p_remark" jdbcType="VARCHAR" property="remark" />
+      <result column="p_menu_id" jdbcType="INTEGER" property="menuId" />
+    </collection>
+  </resultMap>
+
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
     delete from role
     where id = #{id,jdbcType=INTEGER}
@@ -32,5 +46,12 @@
   <select id="selectAll" resultMap="BaseResultMap">
     select id, title, create_date, last_update_date
     from role
+  </select>
+
+  <select id="selectAllWithPerm" resultMap="WithPermission">
+    SELECT
+    r.id AS r_id, r.title AS r_title, r.create_date AS r_create_date, r.last_update_date AS r_last_update_date,
+    p.id AS p_id, p.title AS p_title , p.remark AS p_remark, p.menu_id AS p_menu_id
+     FROM role AS r, permission AS p, role_perm AS rp WHERE r.id = rp.r_id AND p.id = rp.p_id
   </select>
 </mapper>

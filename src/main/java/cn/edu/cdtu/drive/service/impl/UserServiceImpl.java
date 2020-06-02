@@ -1,21 +1,32 @@
 package cn.edu.cdtu.drive.service.impl;
 
+import cn.edu.cdtu.drive.dao.DepartmentMapper;
 import cn.edu.cdtu.drive.dao.LoginMapper;
 import cn.edu.cdtu.drive.dao.UserMapper;
+import cn.edu.cdtu.drive.pojo.Department;
 import cn.edu.cdtu.drive.pojo.Login;
+import cn.edu.cdtu.drive.pojo.SimpleUser;
 import cn.edu.cdtu.drive.pojo.User;
 import cn.edu.cdtu.drive.service.UserService;
 import cn.edu.cdtu.drive.util.CookieUtil;
+import cn.edu.cdtu.drive.util.DemoDataListener;
 import cn.edu.cdtu.drive.util.RedisUtil;
+import com.alibaba.excel.EasyExcel;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author HarrisonLee
@@ -32,6 +43,11 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private RedisUtil redisUtil;
+
+    @Autowired
+    private DepartmentMapper departmentMapper;
+
+    private List<Department>departments;
 
 
     @Override
@@ -97,5 +113,76 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserById(String id) {
         return userMapper.selectByPrimaryKey(id);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED,isolation = Isolation.READ_COMMITTED,timeout=36000,rollbackFor=Exception.class)
+    @Override
+    public Boolean insertByBatch(MultipartFile file) {
+        try {
+            EasyExcel.read(file.getInputStream(), SimpleUser.class, new DemoDataListener(userMapper)).sheet().doRead();
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @Override
+    public PageInfo<User> selectUserByPage(Integer pageNo, Integer pageSize, String deptId,
+                                           Integer limit, Integer type) {
+        // 首先先获取到该部门下所有的部门id
+        var ids = getSubDeptsIds(deptId);
+        PageHelper.startPage(pageNo, pageSize);
+        var users = userMapper.selectByDept(ids, limit, type);
+        users.forEach(user -> {
+            user.setPassword(null);
+        });
+        return new PageInfo<>(users);
+    }
+
+    @Override
+    public boolean setLimit(List<String> ids, Integer limit) {
+        if(Objects.isNull(ids) || Objects.isNull(limit) || ids.size() == 0 || limit < 0 || limit > 1){
+            return false;
+        }
+        return userMapper.setLimit(ids, limit);
+    }
+
+    @Override
+    public boolean partialUpdate(User user) {
+        if(Objects.isNull(user)) {
+            return false;
+        }
+        return userMapper.partialUpdate(user);
+    }
+
+    private List<String> getSubDeptsIds(String rootId) {
+        List<String>list = new ArrayList<>();
+        List<String>subList= new ArrayList<>();
+        List<String>total = new ArrayList<>();
+        list.add(rootId);
+        total.add(rootId);
+
+        fillDepts();
+        while(list.size() > 0) {
+            for (String s : list) {
+                departments.forEach(department -> {
+                    if(Objects.equals(s, department.getPDid())) {
+                        subList.add(department.getId());
+                    }
+                });
+                total.addAll(subList);
+            }
+            list.clear();
+            list.addAll(subList);
+            subList.clear();
+        }
+        return total.stream().distinct().collect(Collectors.toList());
+    }
+
+    private void fillDepts() {
+        if(Objects.isNull(departments)) {
+            departments = departmentMapper.selectAll();
+        }
     }
 }

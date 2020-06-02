@@ -14,6 +14,7 @@
         <setting name="aggressiveLazyLoading" value="false"/>
         <!--虽然默认值是true，但是最好还是显示指定 -->
         <setting name="cacheEnabled" value="false"/>
+<!--        <setting name="logImpl" value="STDOUT_LOGGING" />-->
     </settings>
 
 </configuration>

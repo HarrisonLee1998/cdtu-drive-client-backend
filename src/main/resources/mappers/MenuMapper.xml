@@ -29,4 +29,8 @@
   <select id="selectByParentId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
     select * from menu WHERE pm_id = #{pmId}
   </select>
+
+  <select id="selectAll" resultMap="BaseResultMap">
+    SELECT * FROM menu
+  </select>
 </mapper>

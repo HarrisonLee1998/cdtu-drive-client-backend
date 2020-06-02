@@ -19,7 +19,8 @@ import java.util.Map;
 @Configuration
 public class Transanction {
     private static final int TX_METHOD_TIMEOUT = 5;
-    private static final String AOP_POINTCUT_EXPRESSION = "execution (* cn.edu.cdtu.service..service.*.*(..))";
+    private static final String AOP_POINTCUT_EXPRESSION = "execution (* cn.edu.cdtu.service..*.*(..))";
+
     @Autowired
     private PlatformTransactionManager transactionManager;
     @Bean

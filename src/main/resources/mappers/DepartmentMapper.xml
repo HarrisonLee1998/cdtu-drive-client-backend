@@ -30,7 +30,6 @@
     where id = #{id,jdbcType=CHAR}
   </select>
   <select id="selectAll" resultMap="BaseResultMap">
-    select id, title, d_type, p_did
-    from department WHERE id != 0
+    select id, title, d_type, p_did from department
   </select>
 </mapper>

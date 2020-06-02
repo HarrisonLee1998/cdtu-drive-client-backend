@@ -20,8 +20,12 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Autowired
     private DepartmentMapper departmentMapper;
 
+    private List<Department>departments;
+
     public List<Department>selectAll() {
-        return departmentMapper.selectAll();
+        fillDepts();
+        // 缓存
+        return departments;
     }
 
     @Override
@@ -70,6 +74,12 @@ public class DepartmentServiceImpl implements DepartmentService {
                 });
             }
             // 待遍历完后，list1的size是下一层的数量
+        }
+    }
+
+    private void fillDepts() {
+        if(Objects.isNull(departments)) {
+            departments = departmentMapper.selectAll();
         }
     }
 }

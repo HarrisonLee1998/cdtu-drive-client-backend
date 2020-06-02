@@ -1,30 +1,28 @@
 package cn.edu.cdtu.drive.util;
 
 import cn.edu.cdtu.drive.dao.UserMapper;
-import cn.edu.cdtu.drive.pojo.User;
+import cn.edu.cdtu.drive.pojo.SimpleUser;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
 
 // 有个很重要的点 DemoDataListener 不能被spring管理，要每次读取excel都要new,然后里面用到spring可以构造方法传进去
-public class DemoDataListener extends AnalysisEventListener<User> {
+public class DemoDataListener extends AnalysisEventListener<SimpleUser> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DemoDataListener.class);
     /**
      * 每隔5条存储数据库，实际使用中可以3000条，然后清理list ，方便内存回收
      */
-    private static final int BATCH_COUNT = 5;
-    List<User> list = new ArrayList<>();
+    private static final int BATCH_COUNT = 1;
+    List<SimpleUser> list = new ArrayList<>();
     /**
      * 假设这个是一个DAO，当然有业务逻辑这个也可以是一个service。当然如果不用存储这个对象没用。
      */
-    @Autowired
     private UserMapper userMapper;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -33,9 +31,9 @@ public class DemoDataListener extends AnalysisEventListener<User> {
      *
      * @param demoDAO
      */
-//    public DemoDataListener(UserMapper demoDAO) {
-//        this.userMapper = demoDAO;
-//    }
+    public DemoDataListener(UserMapper demoDAO) {
+        this.userMapper = demoDAO;
+    }
     /**
      * 这个每一条数据解析都会来调用
      *
@@ -45,9 +43,9 @@ public class DemoDataListener extends AnalysisEventListener<User> {
      */
     @SneakyThrows
     @Override
-    public void invoke(User data, AnalysisContext context) {
+    public void invoke(SimpleUser data, AnalysisContext context) {
         // LOGGER.info("解析到一条数据:{}", JSON.toJSONString(data));
-        LOGGER.info("解析到一条数据:{}", objectMapper.writeValueAsString(data));
+        LOGGER.info("解析到一条数据:{}", data.toString());
         list.add(data);
         // 达到BATCH_COUNT了，需要去存储一次数据库，防止数据几万条数据在内存，容易OOM
         if (list.size() >= BATCH_COUNT) {

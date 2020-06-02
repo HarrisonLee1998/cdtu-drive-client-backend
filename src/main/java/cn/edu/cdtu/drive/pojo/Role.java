@@ -3,6 +3,7 @@ package cn.edu.cdtu.drive.pojo;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 @Setter
@@ -19,4 +20,6 @@ public class Role {
     private LocalDateTime createDate;
 
     private LocalDateTime lastUpdateDate;
+
+    private List<Permission>permissions;
 }

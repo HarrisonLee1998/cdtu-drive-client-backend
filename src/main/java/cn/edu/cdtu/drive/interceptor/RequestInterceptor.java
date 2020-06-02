@@ -3,7 +3,6 @@ package cn.edu.cdtu.drive.interceptor;
 import cn.edu.cdtu.drive.pojo.Login;
 import cn.edu.cdtu.drive.service.UserService;
 import cn.edu.cdtu.drive.util.CookieUtil;
-import cn.edu.cdtu.drive.util.JWTUtil;
 import cn.edu.cdtu.drive.util.RedisUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -39,20 +38,19 @@ public class RequestInterceptor implements HandlerInterceptor {
 
     private static ObjectMapper objectMapper = new ObjectMapper();
 
-    private static List<String>white = Arrays.asList("/share/check", "/share/file/folder", "/error");
+    private static List<String>white = Arrays.asList("/share/check", "/share/file/folder", "/admin/login",
+            "/login", "/logout", "/error");
 
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        CookieUtil.printCookies(request);
         final String url = request.getRequestURI();
         final String method = request.getMethod();
         if(white.contains(url)) {
             return true;
         }
         if(Objects.equals("OPTIONS", method)) {
-            return true;
-        }
-        if(url.endsWith("/login")) {
             return true;
         }
         // 向redis请求，判断session ID是否存在
@@ -64,13 +62,13 @@ public class RequestInterceptor implements HandlerInterceptor {
         }
 
         final String token = CookieUtil.getCookie(request, "token");
-        try {
-            JWTUtil.parse(token);
-        } catch (RuntimeException e) {
-            response.setStatus(401);
-            logger.info("token损坏");
-            return false;
-        }
+//        try {
+//            JWTUtil.parse(token);
+//        } catch (RuntimeException e) {
+//            response.setStatus(401);
+//            logger.info("token损坏");
+//            return false;
+//        }
 
         final Login login = (Login) redisUtil.get(token);
         if(Objects.isNull(login)) {
@@ -81,19 +79,19 @@ public class RequestInterceptor implements HandlerInterceptor {
         final LocalDateTime lastActionDateTime = login.getLastActionDateTime();
         final LocalDateTime localDateTime = login.getDate();
 
-        long seconds = Duration.between(lastActionDateTime, LocalDateTime.now()).toSeconds();
+        long minutes = Duration.between(lastActionDateTime, LocalDateTime.now()).toMinutes();
 
         // 如果大于了20分钟，没有操作，那么就要求用户重新登录
-        if(seconds > 60*20) {
+        if(minutes > 20) {
             logger.info("超过20分钟没有操作");
             response.setStatus(401);
             return false;
         }
-        seconds = Duration.between(localDateTime, LocalDateTime.now()).toSeconds();
+        minutes = Duration.between(localDateTime, LocalDateTime.now()).toMinutes();
 
         // 如果登录有效期低于了20分钟，那么重置过期时间为现在的一个小时后
-        if(seconds < 60 * 20) {
-            redisUtil.set(token, login, 60 * (60 - seconds));
+        if(minutes < 20) {
+            redisUtil.set(token, login, (60 - minutes) * 60);
         }
         return true;
     }
