@@ -16,7 +16,7 @@ public class Department {
 
     private String title;
 
-    private String type;
+    private Integer type;
 
     private String pDid;
 

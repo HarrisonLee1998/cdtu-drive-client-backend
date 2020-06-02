@@ -44,7 +44,6 @@ public class RequestInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        CookieUtil.printCookies(request);
         final String url = request.getRequestURI();
         final String method = request.getMethod();
         if(white.contains(url)) {

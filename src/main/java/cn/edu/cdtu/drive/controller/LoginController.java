@@ -62,7 +62,6 @@ public class LoginController {
             result.setStatus(HttpStatus.FORBIDDEN);
         } else if(i == 200) {
             user = (User) map.get("user");
-            user.setPassword(null);
         }
 
         // 保存登录信息
@@ -83,6 +82,7 @@ public class LoginController {
         map.put("id", user.getId());
         // final String token = JWTUtil.generate(map);
         final String token = DigestUtils.md5DigestAsHex((user.getId() + user.getPassword()).getBytes());
+        user.setPassword(null);
         final boolean b = redisUtil.set(token, login, LOGIN_EXPIRE_SECONDS);
 
         boolean flag = false;
@@ -144,16 +144,20 @@ public class LoginController {
 
     @ApiOperation("登出")
     @GetMapping("logout")
-    public void logout(HttpServletRequest request, HttpServletResponse response) {
+    public Result logout(HttpServletRequest request, HttpServletResponse response) {
+        Result result = Result.result();
         final String token = CookieUtil.getCookie(request, "token");
-        redisUtil.del(token);
-        Arrays.stream(request.getCookies()).forEach(cookie -> {
-            if(Objects.equals(cookie.getName(), "token")) {
-                cookie.setValue(null);
-                cookie.setMaxAge(0);
-                cookie.setPath("/");
-                response.addCookie(cookie);
-            }
-        });
+        if(Objects.nonNull(token)) {
+            redisUtil.del(token);
+            Arrays.stream(request.getCookies()).forEach(cookie -> {
+                if(Objects.equals(cookie.getName(), "token")) {
+                    cookie.setValue(null);
+                    cookie.setMaxAge(0);
+                    cookie.setPath("/");
+                    response.addCookie(cookie);
+                }
+            });
+        }
+        return result;
     }
 }

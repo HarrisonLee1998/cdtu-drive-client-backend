@@ -43,6 +43,37 @@ public class DepartmentServiceImpl implements DepartmentService {
         return rootNode;
     }
 
+    @Override
+    public Boolean addDepartment(Map<String, Object> map) {
+        var department = convertMapToDept(map);
+        System.out.println(department);
+        if(Objects.isNull(department) ||
+                Objects.isNull(department.getTitle()) ||
+                Objects.isNull(department.getPDid()) ||
+                Objects.isNull(department.getType())) {
+            return  false;
+        }
+        this.departments = null; // 缓存失效
+        return departmentMapper.insert(department);
+    }
+
+    @Override
+    public Boolean partialUpdate(Map<String, Object> map) {
+        var department = convertMapToDept(map);
+        if(Objects.isNull(department) ||
+                (Objects.isNull(department.getTitle())&& Objects.isNull(department.getPDid()))) {
+            return  false;
+        }
+        this.departments = null;
+        return departmentMapper.partialUpdate(department);
+    }
+
+    @Override
+    public Boolean delete(String id) {
+        this.departments = null;
+        return departmentMapper.deleteByPrimaryKey(id);
+    }
+
     /**
      * 广度优先遍历
      * @param rootDept
@@ -81,5 +112,27 @@ public class DepartmentServiceImpl implements DepartmentService {
         if(Objects.isNull(departments)) {
             departments = departmentMapper.selectAll();
         }
+    }
+
+    private Department convertMapToDept(Map<String, Object>map) {
+        var id = map.get("id");
+        var title = map.get("title");
+        var pid = map.get("pid");
+        var type = map.get("type");
+        if(Objects.isNull(id)) {
+            return null;
+        }
+        var department = new Department();
+        department.setId((String) id);
+        if(Objects.nonNull(title)) {
+            department.setTitle((String) title);
+        }
+        if(Objects.nonNull(pid)) {
+            department.setPDid((String) pid);
+        }
+        if(Objects.nonNull(type)) {
+            department.setType((Integer) type);
+        }
+        return department;
     }
 }
