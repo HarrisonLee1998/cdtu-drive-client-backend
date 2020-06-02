@@ -1,12 +1,14 @@
 package cn.edu.cdtu.drive.dao;
 
 import cn.edu.cdtu.drive.pojo.Role;
+import org.apache.ibatis.annotations.Param;
+
 import java.util.List;
 
 public interface RoleMapper {
-    int deleteByPrimaryKey(Integer id);
+    boolean deleteByPrimaryKey(Integer id);
 
-    int insert(Role record);
+    boolean insert(Role record);
 
     Role selectByPrimaryKey(Integer id);
 
@@ -15,4 +17,7 @@ public interface RoleMapper {
     int updateByPrimaryKey(Role record);
 
     List<Role> selectAllWithPerm();
+
+    boolean saveRolePerm(@Param("roleId") Integer roleId,@Param("permIds")  List<Integer>permIds);
+    boolean deleteRolePerm(@Param("roleId") Integer roleId, @Param("permIds") List<Integer>permIds);
 }

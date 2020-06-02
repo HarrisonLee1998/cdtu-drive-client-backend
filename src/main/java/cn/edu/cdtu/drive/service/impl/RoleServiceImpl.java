@@ -10,11 +10,13 @@ import cn.edu.cdtu.drive.service.RoleService;
 import cn.edu.cdtu.drive.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -36,13 +38,21 @@ public class RoleServiceImpl implements RoleService {
     @Autowired
     private UserService userService;
 
-    private List<Role>roles;
+    private static List<Role>roles;
 
-    private List<Menu>menus;
+    private static List<Menu>menus;
+
+    private static List<Permission> permissions;
 
     @Override
     public Role selectRoleById(int roleId) {
-        return roleMapper.selectByPrimaryKey(roleId);
+        fillRole();
+        for (Role role : roles) {
+            if(Objects.equals(roleId, role.getId())) {
+                return role;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -50,6 +60,54 @@ public class RoleServiceImpl implements RoleService {
         fillRole();
         // 缓存
         return roles;
+    }
+
+    public List<Permission>selectAllPerm() {
+        fillPerm();
+        return permissions;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED,isolation = Isolation.READ_COMMITTED,timeout=36000,
+            rollbackFor=Exception.class)
+    @Override
+    public boolean insertOrUpdate(Role role) {
+        // 初步筛选
+        if(Objects.isNull(role) || Objects.isNull(role.getTitle()) || role.getTitle().isBlank() ||
+                Objects.isNull(role.getPermissions())||role.getPermissions().size() == 0) {
+            return false;
+        }
+        fillRole();
+        // 判断title是否已存在
+        if(roles.stream().map(Role::getTitle).collect(Collectors.toList()).contains(role.getTitle())) {
+            // 更新
+            var b = update(role);
+            roles = null;
+            return b;
+        } else {
+            role.setCreateDate(LocalDateTime.now());
+            role.setLastUpdateDate(LocalDateTime.now());
+        }
+
+        fillPerm();
+        // 判断permissions是否合法
+        role.setPermissions(role.getPermissions().stream().filter(permission ->
+                permissions.stream().anyMatch(p -> Objects.equals(p.getId(), permission.getId())))
+                .collect(Collectors.toList()));
+        if(role.getPermissions().size() == 0) {
+            return false;
+        }
+        role.setCreateDate(LocalDateTime.now());
+        var b = roleMapper.insert(role);
+        var list = role.getPermissions().stream().map(Permission::getId).collect(Collectors.toList());
+        b = roleMapper.saveRolePerm(role.getId(), list);
+        roles = null;
+        return b;
+    }
+
+    @Override
+    public boolean deleteById(Integer id) {
+        roles = null;
+        return roleMapper.deleteByPrimaryKey(id);
     }
 
     @Override
@@ -113,6 +171,41 @@ public class RoleServiceImpl implements RoleService {
         return mp.contains(path);
     }
 
+    private boolean update(Role role) {
+        var set1 = role.getPermissions().stream().map(Permission::getId).collect(Collectors.toSet());
+        var set2 = Objects.requireNonNull(selectRoleByTitle(role.getTitle())).getPermissions().stream().map(Permission::getId)
+                .collect(Collectors.toSet());
+         // 求差集
+        // 交集
+        var set3 = new HashSet<>(set1);
+        var set4 = new HashSet<>(set2);
+        set3.removeAll(set2);
+        set4.removeAll(set1);
+
+        role = selectRoleByTitle(role.getTitle());
+        role.setLastUpdateDate(LocalDateTime.now());
+        roleMapper.updateByPrimaryKey(role);
+
+        if(set3.size() > 0) {
+            // 新增
+            roleMapper.saveRolePerm(role.getId(), new ArrayList<>(set3));
+        }
+        if(set4.size() > 0) {
+            // 删除
+            roleMapper.deleteRolePerm(role.getId(), new ArrayList<>(set4));
+        }
+        return true;
+    }
+    private Role selectRoleByTitle(String title) {
+        fillRole();
+        for (Role role : roles) {
+            if(Objects.equals(title, role.getTitle())) {
+                return role;
+            }
+        }
+        return null;
+    }
+
     private void fillRole() {
         if(Objects.isNull(roles)) {
             roles = roleMapper.selectAllWithPerm();
@@ -122,6 +215,12 @@ public class RoleServiceImpl implements RoleService {
     private void fillMenu() {
         if(Objects.isNull(menus)) {
             menus = menuMapper.selectAll();
+        }
+    }
+
+    private void fillPerm() {
+        if(Objects.isNull(permissions)) {
+            permissions = permissionMapper.selectAll();
         }
     }
 }

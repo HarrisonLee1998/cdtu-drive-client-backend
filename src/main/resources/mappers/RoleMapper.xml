@@ -25,10 +25,10 @@
     delete from role
     where id = #{id,jdbcType=INTEGER}
   </delete>
-  <insert id="insert" parameterType="cn.edu.cdtu.drive.pojo.Role">
-    insert into role (id, title, create_date, 
+  <insert id="insert" parameterType="cn.edu.cdtu.drive.pojo.Role" useGeneratedKeys="true" keyProperty="id">
+    insert into role (title, create_date,
       last_update_date)
-    values (#{id,jdbcType=INTEGER}, #{title,jdbcType=VARCHAR}, #{createDate,jdbcType=TIMESTAMP}, 
+    values (#{title,jdbcType=VARCHAR}, #{createDate,jdbcType=TIMESTAMP},
       #{lastUpdateDate,jdbcType=TIMESTAMP})
   </insert>
   <update id="updateByPrimaryKey" parameterType="cn.edu.cdtu.drive.pojo.Role">
@@ -54,4 +54,20 @@
     p.id AS p_id, p.title AS p_title , p.remark AS p_remark, p.menu_id AS p_menu_id
      FROM role AS r, permission AS p, role_perm AS rp WHERE r.id = rp.r_id AND p.id = rp.p_id
   </select>
+
+  <insert id="saveRolePerm">
+    INSERT INTO role_perm
+    VALUES
+    <foreach collection="permIds" item="id" separator=",">
+    (#{roleId}, #{id})
+    </foreach>
+  </insert>
+
+  <delete id="deleteRolePerm">
+    DELETE FROM role_perm WHERE
+    r_id = #{roleId} AND p_id IN
+    <foreach collection="permIds" item="id" separator="," open="(" close=")">
+      #{id}
+    </foreach>
+  </delete>
 </mapper>
