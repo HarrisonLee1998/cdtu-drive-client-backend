@@ -16,12 +16,14 @@ import cn.edu.cdtu.drive.util.UUIDHelper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -152,13 +154,17 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public boolean checkPermission(String uId, String fId) {
-        final FileUser fileUser = fileUserMapper.checkPermission(uId, fId);
-        if (Objects.isNull(fileUser)) {
-            return false;
+        var fileUser = fileUserMapper.selectByPrimaryKey(fId);
+        if(Objects.nonNull(fileUser.getGId())) {
+            return true;
+        }
+        // fileUser = fileUserMapper.checkPermission(uId, fId);
+        if(Objects.equals(uId, fileUser.getUId())) {
+            return true;
         }
         // 增加其他逻辑，比如在组空间中上传
         // 继续检查当前文件夹是否属于某个分组，然后当前用户是否具有上传权限
-        return true;
+        return false;
     }
 
     @Override
@@ -186,7 +192,6 @@ public class FileServiceImpl implements FileService {
             return false;
         }
 
-        System.out.println(chunk);
         // 处理relative path
         String relativePath = chunk.getRelativePath();
         final String[] strings = relativePath.split("/");
@@ -230,6 +235,9 @@ public class FileServiceImpl implements FileService {
                         } else {
                             f.setFPid(folders.get(i - 1).getId());
                         }
+                        if(Objects.nonNull(parentFile.getGId())){
+                            f.setGId(parentFile.getGId());
+                        }
                         final int r = fileUserMapper.insert(f);
                         if (r < 0) {
                             return false;
@@ -264,6 +272,11 @@ public class FileServiceImpl implements FileService {
             fileUser.setFPid(folders.get(folders.size() - 1).getId());
             // fileUser.setFPath(folders.get(folders.size() - 1).getFPath()+ "/" + fileUser.getFName());
         }
+
+        if(Objects.nonNull(parentFile.getGId())){
+            fileUser.setGId(parentFile.getGId());
+        }
+
         fileUser.setLastUpdateDate(LocalDateTime.now());
         final int i = fileUserMapper.insert(fileUser);
         if(i <= 0) {
@@ -288,10 +301,16 @@ public class FileServiceImpl implements FileService {
             } else {
                 fileUser.setFPath(parentFile.getFPath() + "/" + fileUser.getFName());
             }
+            // 如果是组空间上传，那么需要设置组的id
+            if(Objects.nonNull(parentFile.getGId())) {
+                fileUser.setGId(parentFile.getGId());
+                fileUser.setId(DigestUtils.md5DigestAsHex((parentFile.getGId() + fileUser.getFPath()).getBytes()));
+            } else {
+                fileUser.setId(DigestUtils.md5DigestAsHex((fileUser.getUId() + fileUser.getFPath()).getBytes()));
+            }
             fileUser.setLastUpdateDate(LocalDateTime.now());
             fileUser.setIsFolder(1);
             fileUser.setIsDelete(0);
-            fileUser.setId(DigestUtils.md5DigestAsHex((fileUser.getUId() + fileUser.getFPath()).getBytes()));
             System.out.println(fileUser);
             // 在判断目录是否已经存在
             final FileUser fileUser1 = fileUserMapper.selectByPrimaryKey(fileUser.getId());
@@ -700,6 +719,27 @@ public class FileServiceImpl implements FileService {
         } else {
             var path = Paths.get(fileItem.getPath(), fileItem.getId());
             return Files.readAllBytes(path);
+        }
+    }
+
+    @Override
+    public void download(String uId, String id, HttpServletResponse response) {
+        var fileUser = fileUserMapper.selectByPrimaryKey(id);
+        var fileItem = fileItemMapper.selectByPrimaryKey(fileUser.getFId());
+        if(Objects.nonNull(fileItem)) {
+            var path = Paths.get(fileItem.getPath(), fileItem.getId());
+            byte[] bytes;
+            try {
+                bytes = Files.readAllBytes(path);
+                response.setContentType("application/octet-stream");
+                response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename="
+                        + fileUser.getFName());
+                response.getOutputStream().write(bytes);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            response.setStatus(401);
         }
     }
 

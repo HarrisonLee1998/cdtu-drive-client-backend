@@ -12,8 +12,12 @@ public interface GroupService {
     boolean updateGroup(Group group, String uId);
     List<Group> selectGroupsForUser(String uId);
     Group selectGroupById(String id);
-    List<User>selectGroupUser(String gId);
+    List<User>selectGroupUsers(String gId, Integer status);
     boolean updateGroupUser(String gId, String uId, Integer flag);
 
     GroupUser selectGroupUser(String gId, String uId);
+
+    Boolean deleteGroup(String gId, String uId);
+
+    Boolean joinGroup(String gId, String uId);
 }

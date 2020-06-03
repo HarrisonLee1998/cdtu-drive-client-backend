@@ -1,7 +1,18 @@
 package cn.edu.cdtu.drive.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.*;
+
 import java.time.LocalDateTime;
 
+
+@NoArgsConstructor
+@AllArgsConstructor
+@Setter
+@Getter
+@EqualsAndHashCode
+@ToString
+@JsonIgnoreProperties(value = { "handler" })
 public class GroupUser {
     private String gId;
 
@@ -12,44 +23,4 @@ public class GroupUser {
     private LocalDateTime joinDate;
 
     private Integer status;
-
-    public String getgId() {
-        return gId;
-    }
-
-    public void setgId(String gId) {
-        this.gId = gId == null ? null : gId.trim();
-    }
-
-    public String getuId() {
-        return uId;
-    }
-
-    public void setuId(String uId) {
-        this.uId = uId == null ? null : uId.trim();
-    }
-
-    public Integer getGuType() {
-        return guType;
-    }
-
-    public void setGuType(Integer guType) {
-        this.guType = guType;
-    }
-
-    public LocalDateTime getJoinDate() {
-        return joinDate;
-    }
-
-    public void setJoinDate(LocalDateTime joinDate) {
-        this.joinDate = joinDate;
-    }
-
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
 }

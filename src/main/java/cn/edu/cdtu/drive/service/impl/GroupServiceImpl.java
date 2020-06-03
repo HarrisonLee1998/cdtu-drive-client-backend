@@ -18,6 +18,7 @@ import org.springframework.util.DigestUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Transactional(propagation = Propagation.REQUIRED,
         isolation = Isolation.READ_COMMITTED,timeout=36000,rollbackFor=Exception.class)
@@ -37,8 +38,8 @@ public class GroupServiceImpl implements GroupService {
     public Group newGroup(Group group, String uId) {
         group.setId(UUIDHelper.rand(12));
         var groupUser = new GroupUser();
-        groupUser.setgId(group.getId());
-        groupUser.setuId(uId);
+        groupUser.setGId(group.getId());
+        groupUser.setUId(uId);
         groupUser.setStatus(1);
         groupUser.setGuType(0);
         groupUser.setJoinDate(LocalDateTime.now());
@@ -60,7 +61,9 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     public boolean updateGroup(Group group, String uId) {
-        return false;
+        // 鉴权
+        groupMapper.updateByPrimaryKey(group);
+        return true;
     }
 
     @Override
@@ -74,7 +77,8 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public List<User> selectGroupUser(String gId) {
+    public List<User> selectGroupUsers(String gId, Integer status) {
+
         return null;
     }
 
@@ -86,5 +90,27 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public GroupUser selectGroupUser(String gId, String uId) {
         return groupUserMapper.selectGroupUser(gId, uId);
+    }
+
+    @Override
+    public Boolean deleteGroup(String gId, String uId) {
+        groupMapper.deleteByPrimaryKey(gId);
+        return true;
+    }
+
+    @Override
+    public Boolean joinGroup(String gId, String uId) {
+        var groupUser1 = groupUserMapper.selectGroupUser(gId, uId);
+        if(Objects.nonNull(groupUser1)) {
+            return  false;
+        }
+        var groupUser = new GroupUser();
+        groupUser.setGId(gId);
+        groupUser.setUId(uId);
+        groupUser.setGuType(2);
+        groupUser.setStatus(0);
+        groupUser.setJoinDate(LocalDateTime.now());
+        groupUserMapper.insert(groupUser);
+        return true;
     }
 }

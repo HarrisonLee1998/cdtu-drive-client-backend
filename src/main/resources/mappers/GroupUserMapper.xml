@@ -41,4 +41,9 @@
   <select id="selectGroupUser" resultMap="BaseResultMap">
     select * from group_user where g_id = #{gId} AND u_id = #{uId}
   </select>
+
+  <select id="selectGroupUsers" resultType="cn.edu.cdtu.drive.pojo.User">
+    SELECT * from `user` AS u, group_user AS gu WHERE u.id = gu.u_id AND gu.status = #{status}
+    AND gu.g_id = #{gId}
+  </select>
 </mapper>

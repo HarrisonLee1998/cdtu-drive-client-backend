@@ -22,12 +22,22 @@
   </insert>
   <update id="updateByPrimaryKey" parameterType="cn.edu.cdtu.drive.pojo.Group">
     update `group`
-    set title = #{title,jdbcType=VARCHAR},
-      avatar = #{avatar,jdbcType=VARCHAR},
-      brief = #{brief,jdbcType=VARCHAR},
-      g_limit = #{limit,jdbcType=INTEGER},
-      is_writeable = #{isWriteable,jdbcType=INTEGER},
-      is_readable = #{isReadable,jdbcType=INTEGER}
+    set
+    <trim suffixOverrides=",">
+      title = #{title,jdbcType=VARCHAR},
+      <if test="avatar != null">
+        avatar = #{avatar,jdbcType=VARCHAR},
+      </if>
+      <if test="brief != null">
+        brief = #{brief,jdbcType=VARCHAR},
+      </if>
+      <if test="isWriteable != null">
+        is_writeable = #{isWriteable,jdbcType=INTEGER},
+      </if>
+      <if test="isReadable">
+        is_readable = #{isReadable,jdbcType=INTEGER}
+      </if>
+    </trim>
     where id = #{id,jdbcType=CHAR}
   </update>
   <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">

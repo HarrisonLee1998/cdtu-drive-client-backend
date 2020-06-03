@@ -47,7 +47,13 @@ public class GroupController {
     @PatchMapping("group")
     public Result updateGroup(HttpServletRequest request, @RequestBody Map<String,Object>map) {
         var result = Result.result();
-
+        var group = constructGroup(map);
+        if(Objects.isNull(group)) {
+            result.setStatus(HttpStatus.BAD_REQUEST);
+            return result;
+        }
+        var login = userService.getLoginFromToken(request);
+        groupService.updateGroup(group, login.getUId());
         return result;
     }
 
@@ -82,9 +88,15 @@ public class GroupController {
 
     @ApiOperation("获取共享组内的用户")
     @GetMapping("group/users")
-    public Result selectGroupUser(@RequestParam String gId) {
+    public Result selectGroupUser(@RequestParam String gId, @RequestParam Integer status) {
         var result = Result.result();
         System.out.println(gId);
+        var users = groupService.selectGroupUsers(gId, status);
+        if(Objects.nonNull(users)) {
+            result.put("users", users);
+        } else {
+            result.setStatus(HttpStatus.BAD_REQUEST);
+        }
         return result;
     }
 
@@ -112,17 +124,46 @@ public class GroupController {
         return result;
     }
 
+    @ApiOperation("删除共享组")
+    @DeleteMapping("group")
+    public Result deleteGroup(HttpServletRequest request, @RequestParam String gId) {
+        var result = Result.result();
+        var login = userService.getLoginFromToken(request);
+        var aBoolean = groupService.deleteGroup(gId, login.getUId());
+        if(!aBoolean) {
+            result.setStatus(HttpStatus.BAD_REQUEST);
+        }
+        return result;
+    }
+
+    @ApiOperation("用户提交加入共享组的申请")
+    @PostMapping("group/user")
+    public Result joinGroup(HttpServletRequest request, @RequestBody Map<String,Object>map) {
+        var result = Result.result();
+        var login = userService.getLoginFromToken(request);
+        var gId = (String)map.get("gId");
+        var aBoolean = groupService.joinGroup(gId, login.getUId());
+        if(!aBoolean) {
+            result.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return result;
+    }
+
+
     private Group constructGroup(Map<String,Object>map) {
+        var id = (String)map.get("id");
         var title = (String)map.get("title");
         var brief = (String)map.get("brief");
         var isReadable = (Boolean)map.get("isReadable");
         var isWriteable = (Boolean)map.get("isWriteable");
 
         var group = new Group();
-
         if(Objects.isNull(title) || title.isBlank() ||
                 Objects.isNull(isReadable) || Objects.isNull(isWriteable)) {
             return null;
+        }
+        if(Objects.nonNull(id)) {
+            group.setId(id);
         }
         group.setTitle(title);
         group.setBrief(brief);
@@ -130,6 +171,4 @@ public class GroupController {
         group.setIsWriteable(isWriteable ? 1 : 0);
         return  group;
     }
-
-
 }

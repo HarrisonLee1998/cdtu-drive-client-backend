@@ -387,4 +387,12 @@ public class FileController {
             response.setStatus(401);
         }
     }
+
+    @ApiOperation("文件下载")
+    @GetMapping("file/download")
+    public void download(HttpServletRequest request, HttpServletResponse response) {
+        var id = request.getParameter("id");
+        var uId = request.getParameter("uId");
+        fileService.download(null, id, response);
+    }
 }

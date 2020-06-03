@@ -7,6 +7,7 @@ import cn.edu.cdtu.drive.util.Result;
 import com.github.pagehelper.PageInfo;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -45,4 +46,6 @@ public interface FileService {
     PageInfo<FileUser> selectByType(String uId, String type, Integer pageNo, Integer pageSize);
 
     byte[] getFileById(String id) throws IOException;
+
+    void download(String uId, String id, HttpServletResponse response);
 }
