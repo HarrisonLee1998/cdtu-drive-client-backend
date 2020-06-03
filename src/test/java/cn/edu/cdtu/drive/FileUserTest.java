@@ -50,7 +50,7 @@ public class FileUserTest {
     public void getFileByPath() {
         String path = "/";
         String uId = "16010201002";
-        final FileUser fileUser = fileUserMapper.selectFileByPath(uId, path);
+        final FileUser fileUser = fileUserMapper.selectFileByPath(uId, null, path);
         fileUser.getList().forEach(System.out::println);
     }
 
@@ -63,7 +63,7 @@ public class FileUserTest {
     @Test
     public void getFolderTree() {
         String id = "16010201001";
-        final Node node = fileService.selectFolderTree(id);
+        final Node node = fileService.selectFolderTree(id, null);
         System.out.println("---------------------------------------");
         printTree(node, 1);
     }

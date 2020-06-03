@@ -116,6 +116,12 @@ public class FileController {
         return result;
     }
 
+    /**
+     * 自有空间与共享空间合并处理
+     * @param request
+     * @param path
+     * @return
+     */
     @ApiOperation("获取当前文件夹下的文件信息")
     @GetMapping("file/folder")
     public Result getFolderTree(HttpServletRequest request,  @RequestParam @NotBlank String path) {
@@ -123,7 +129,8 @@ public class FileController {
         final String token = CookieUtil.getCookie(request, "token");
         final Login login = (Login) redisUtil.get(token);
         String uId = login.getUId();
-        FileUser fileUser = fileService.selectFileByPath(uId, path);
+        String gId = request.getParameter("gId");
+        FileUser fileUser =fileService.selectFileByPath(uId, gId, path);
         result.put("file", fileUser);
         return result;
     }
@@ -161,12 +168,18 @@ public class FileController {
         return result;
     }
 
+    /**
+     * 自有空间与共享空间合并处理
+     * @param request
+     * @return
+     */
     @ApiOperation("获取目录树")
     @GetMapping("file/folder/tree")
     public Result selectFolderTree(HttpServletRequest request) {
         final Result result = Result.result();
         final Login login = userService.getLoginFromToken(request);
-        final Node node = fileService.selectFolderTree(login.getUId());
+        String gId = request.getParameter("gId");
+        final Node node = fileService.selectFolderTree(login.getUId(), gId);
         if(Objects.isNull(node)) {
             result.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
         } else {
@@ -214,11 +227,17 @@ public class FileController {
         return fileService.move(login.getUId(), src, desc);
     }
 
+    /**
+     * 自有空间与共享空间合并处理
+     * @param request
+     * @return
+     */
     @ApiOperation("读取回收站列表")
     @GetMapping("file/recycle")
     public Result selectAllFilesForRecycle(HttpServletRequest request) {
         var login = userService.getLoginFromToken(request);
-        var list = fileService.selectFileForRecycleBin(login.getUId());
+        var gId = request.getParameter("gId");
+        var list = fileService.selectFileForRecycleBin(login.getUId(), gId);
         return Result.result().put("list", list);
     }
 
@@ -292,8 +311,8 @@ public class FileController {
         }
     }
 
-    @ApiOperation("获取用户或者组的头像")
-    @PostMapping(value = {"user/avatar"})
+    @ApiOperation("保存用户或者组的头像")
+    @PostMapping(value = {"user/avatar", "group/avatar"})
     public void saveAvatar(HttpServletRequest request, HttpServletResponse response,
                            @RequestParam("file") MultipartFile file) throws IOException {
         var id = request.getParameter("id");
@@ -328,5 +347,44 @@ public class FileController {
             result.put("maps", maps);
         }
         return result;
+    }
+
+    @ApiOperation("分类型获取文件")
+    @GetMapping("file/{pageNo:^[1-9]\\d*$}/{pageSize:^-?[0-9]+$}/{type}")
+    public Result selectFileByType(HttpServletRequest request,
+                                   @PathVariable Integer pageNo,
+                                   @PathVariable Integer pageSize,
+                                   @PathVariable String type) {
+        var result = Result.result();
+
+        var login = userService.getLoginFromToken(request);
+        if(Objects.isNull(login)) {
+            return result;
+        }
+        var pageInfo = fileService.selectByType(login.getUId(), type, pageNo, pageSize);
+        if(Objects.isNull(pageInfo)) {
+            result.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        } else {
+            result.put("pageInfo", pageInfo);
+        }
+        return result;
+    }
+
+    @ApiOperation("根据ID获取文件内容")
+    @GetMapping("file/content")
+    public void getFileContentById(HttpServletRequest request, HttpServletResponse response,
+                                   @RequestParam String id) {
+        try {
+            var bytes = fileService.getFileById(id);
+            if(Objects.isNull(bytes)) {
+                response.setStatus(500);
+            } else {
+                System.out.println(bytes.length);
+                response.getOutputStream().write(bytes);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            response.setStatus(401);
+        }
     }
 }

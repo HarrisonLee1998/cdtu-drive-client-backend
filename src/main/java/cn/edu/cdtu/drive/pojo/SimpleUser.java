@@ -2,6 +2,7 @@ package cn.edu.cdtu.drive.pojo;
 
 import com.alibaba.excel.annotation.ExcelProperty;
 import lombok.*;
+import org.springframework.util.DigestUtils;
 
 import java.util.Objects;
 
@@ -46,7 +47,7 @@ public class SimpleUser {
         }
 
         // 其他字段
-        user.setPassword(this.id);
+        user.setPassword(DigestUtils.md5DigestAsHex(user.getId().getBytes()));
 
         return user;
     }

@@ -6,39 +6,41 @@
     <result column="title" jdbcType="VARCHAR" property="title" />
     <result column="avatar" jdbcType="VARCHAR" property="avatar" />
     <result column="brief" jdbcType="VARCHAR" property="brief" />
-    <result column="limit" jdbcType="INTEGER" property="limit" />
-    <result column="is_writable" jdbcType="INTEGER" property="isWritable" />
+    <result column="g_limit" jdbcType="INTEGER" property="limit" />
+    <result column="is_writeable" jdbcType="INTEGER" property="isWriteable" />
     <result column="is_readable" jdbcType="INTEGER" property="isReadable" />
   </resultMap>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
-    delete from group
+    delete from `group`
     where id = #{id,jdbcType=CHAR}
   </delete>
   <insert id="insert" parameterType="cn.edu.cdtu.drive.pojo.Group">
-    insert into group (id, title, avatar, 
-      brief, limit, is_writable, 
-      is_readable)
-    values (#{id,jdbcType=CHAR}, #{title,jdbcType=VARCHAR}, #{avatar,jdbcType=VARCHAR}, 
-      #{brief,jdbcType=VARCHAR}, #{limit,jdbcType=INTEGER}, #{isWritable,jdbcType=INTEGER}, 
+    insert into `group` (id, title,brief,is_writeable,is_readable)
+    values (#{id,jdbcType=CHAR}, #{title,jdbcType=VARCHAR},
+      #{brief,jdbcType=VARCHAR}, #{isWriteable,jdbcType=INTEGER},
       #{isReadable,jdbcType=INTEGER})
   </insert>
   <update id="updateByPrimaryKey" parameterType="cn.edu.cdtu.drive.pojo.Group">
-    update group
+    update `group`
     set title = #{title,jdbcType=VARCHAR},
       avatar = #{avatar,jdbcType=VARCHAR},
       brief = #{brief,jdbcType=VARCHAR},
-      limit = #{limit,jdbcType=INTEGER},
-      is_writable = #{isWritable,jdbcType=INTEGER},
+      g_limit = #{limit,jdbcType=INTEGER},
+      is_writeable = #{isWriteable,jdbcType=INTEGER},
       is_readable = #{isReadable,jdbcType=INTEGER}
     where id = #{id,jdbcType=CHAR}
   </update>
   <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
-    select id, title, avatar, brief, limit, is_writable, is_readable
-    from group
+    select id, title, avatar, brief, g_limit, is_writeable, is_readable
+    from `group`
     where id = #{id,jdbcType=CHAR}
   </select>
   <select id="selectAll" resultMap="BaseResultMap">
-    select id, title, avatar, brief, limit, is_writable, is_readable
-    from group
+    select id, title, avatar, brief, g_limit, is_writeable, is_readable
+    from `group`
+  </select>
+
+  <select id="selectAllForUser" resultMap="BaseResultMap">
+    SELECT * FROM `group` AS g,  group_user AS gu WHERE g.id = gu.g_id AND gu.u_id = #{uId} AND gu.status = 1
   </select>
 </mapper>

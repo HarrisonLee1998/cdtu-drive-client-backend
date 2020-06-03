@@ -21,17 +21,17 @@ public interface FileUserMapper {
 
     FileUser checkPermission(String uId, String fId);
 
-    FileUser selectFileByPath(@Param("uId") String uId, @Param("path") String path);
+    FileUser selectFileByPath(@Param("uId") String uId, @Param("gId") String gId, @Param("path") String path);
 
-    FileUser selectFileByName(@Param("uId") String uId, @Param("name") String name);
+    FileUser selectFileByName(@Param("uId") String uId,@Param("gId") String gId, @Param("name") String name);
 
     List<FileUser> selectFilesByPId(String id);
 
     boolean updateDate(@Param("id") String id, @Param("lastUpdateDate") LocalDateTime localDateTime);
 
-    List<FileUser> selectAllFolder(String uId);
+    List<FileUser> selectAllFolder(@Param("uId") String uId, @Param("gId") String gId);
 
-    List<FileUser> selectAllRecycledFile(String uId);
+    List<FileUser> selectAllRecycledFile(@Param("uId") String uId, @Param("gId") String gId);
 
     boolean handleRecycle(@Param("id") String id, @Param("flag") Integer flag);
 
@@ -43,4 +43,6 @@ public interface FileUserMapper {
     // share
 
     FileUser selectFileByPathForShare(@Param("shareId") String shareId, @Param("path") String path);
+
+    List<FileUser>selectByType(@Param("uId") String uId, @Param("type") String type);
 }

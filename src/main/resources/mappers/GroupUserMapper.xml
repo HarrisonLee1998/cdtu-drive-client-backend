@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.edu.cdtu.drive.dao.GroupUserMapper">
+  <resultMap id="BaseResultMap" type="cn.edu.cdtu.drive.pojo.GroupUser">
+    <id column="g_id" jdbcType="CHAR" property="gId" />
+    <id column="u_id" jdbcType="VARCHAR" property="uId" />
+    <result column="gu_type" jdbcType="INTEGER" property="guType" />
+    <result column="join_date" jdbcType="TIMESTAMP" property="joinDate" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="map">
+    delete from group_user
+    where g_id = #{gId,jdbcType=CHAR}
+      and u_id = #{uId,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="cn.edu.cdtu.drive.pojo.GroupUser">
+    insert into group_user (g_id, u_id, gu_type, 
+      join_date, status)
+    values (#{gId,jdbcType=CHAR}, #{uId,jdbcType=VARCHAR}, #{guType,jdbcType=INTEGER}, 
+      #{joinDate,jdbcType=TIMESTAMP}, #{status,jdbcType=INTEGER})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="cn.edu.cdtu.drive.pojo.GroupUser">
+    update group_user
+    set gu_type = #{guType,jdbcType=INTEGER},
+      join_date = #{joinDate,jdbcType=TIMESTAMP},
+      status = #{status,jdbcType=INTEGER}
+    where g_id = #{gId,jdbcType=CHAR}
+      and u_id = #{uId,jdbcType=VARCHAR}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="map" resultMap="BaseResultMap">
+    select g_id, u_id, gu_type, join_date, status
+    from group_user
+    where g_id = #{gId,jdbcType=CHAR}
+      and u_id = #{uId,jdbcType=VARCHAR}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select g_id, u_id, gu_type, join_date, status
+    from group_user
+  </select>
+
+  <select id="selectGroupUser" resultMap="BaseResultMap">
+    select * from group_user where g_id = #{gId} AND u_id = #{uId}
+  </select>
+</mapper>

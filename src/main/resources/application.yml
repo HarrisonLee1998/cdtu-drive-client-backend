@@ -4,6 +4,8 @@ server:
 #    remote-ip-header: X-Real-IP
 #    protocol-header: X-ForWarded-Proto
   forward-headers-strategy: native
+  tomcat:
+    connection-timeout: 60000
 spring:
   profiles:
     active: dev

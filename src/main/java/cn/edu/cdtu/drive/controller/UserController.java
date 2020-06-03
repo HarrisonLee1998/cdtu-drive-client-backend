@@ -113,7 +113,7 @@ public class UserController {
     }
 
     @ApiOperation("修改用户部分信息")
-    @PatchMapping("admin/user")
+    @PatchMapping(value = {"admin/user", "user"})
     public Result partialUpdate(HttpServletRequest request, HttpServletResponse response,
                                 @RequestBody User user) {
         var result = Result.result();

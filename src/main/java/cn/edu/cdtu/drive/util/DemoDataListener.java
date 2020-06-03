@@ -1,7 +1,7 @@
 package cn.edu.cdtu.drive.util;
 
-import cn.edu.cdtu.drive.dao.UserMapper;
 import cn.edu.cdtu.drive.pojo.SimpleUser;
+import cn.edu.cdtu.drive.service.UserService;
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,21 +18,22 @@ public class DemoDataListener extends AnalysisEventListener<SimpleUser> {
     /**
      * 每隔5条存储数据库，实际使用中可以3000条，然后清理list ，方便内存回收
      */
-    private static final int BATCH_COUNT = 1;
+    private static final int BATCH_COUNT = 50;
     List<SimpleUser> list = new ArrayList<>();
     /**
      * 假设这个是一个DAO，当然有业务逻辑这个也可以是一个service。当然如果不用存储这个对象没用。
      */
-    private UserMapper userMapper;
+    private UserService userService;
+
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
+
     /**
      * 如果使用了spring,请使用这个构造方法。每次创建Listener的时候需要把spring管理的类传进来
-     *
-     * @param demoDAO
+     * @param userService
      */
-    public DemoDataListener(UserMapper demoDAO) {
-        this.userMapper = demoDAO;
+    public DemoDataListener(UserService userService) {
+        this.userService = userService;
     }
     /**
      * 这个每一条数据解析都会来调用
@@ -70,7 +71,7 @@ public class DemoDataListener extends AnalysisEventListener<SimpleUser> {
      */
     private void saveData() {
         LOGGER.info("{}条数据，开始存储数据库！", list.size());
-        userMapper.save(list);
+        userService.saveUserList(list);
         LOGGER.info("存储数据库成功！");
     }
 }

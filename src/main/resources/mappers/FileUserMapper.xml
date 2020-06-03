@@ -77,12 +77,25 @@
     SELECT * FROM file_user WHERE is_delete = 0 AND u_id = #{uId} AND id = #{fId}
   </select>
 
+  <!-- 根据文件路径查询 -->
   <select id="selectFileByPath" resultMap="WithSubItem">
-    SELECT * FROM file_user where u_id = #{uId} AND f_path = #{path}
+    SELECT * FROM file_user where f_path = #{path}
+    <if test="gId == null">
+      AND u_id = #{uId} AND g_id IS NULL
+    </if>
+    <if test="gId != null">
+      AND g_id = #{gId}
+    </if>
   </select>
 
   <select id="selectFileByName" resultMap="BaseResultMap">
-    SELECT * FROM file_user where u_id = #{uId} AND f_name = #{name}
+    SELECT * FROM file_user where f_name = #{name}
+    <if test="gId == null">
+      AND u_id = #{uId} AND g_id IS NULL
+    </if>
+    <if test="gId != null">
+      AND g_id = #{gId}
+    </if>
   </select>
 
   <select id="selectFilesByPId" resultMap="BaseResultMap">
@@ -94,11 +107,23 @@
   </update>
 
   <select id="selectAllFolder" parameterType="java.lang.String" resultMap="BaseResultMap">
-    SELECT * FROM file_user WHERE u_id = #{uId} AND is_folder = 1
+    SELECT * FROM file_user WHERE is_folder = 1
+    <if test="gId == null">
+      AND u_id = #{uId} AND g_id IS NULL
+    </if>
+    <if test="gId != null">
+      AND g_id = #{gId}
+    </if>
   </select>
 
   <select id="selectAllRecycledFile" resultMap="BaseResultMap">
-    SELECT * FROM file_user WHERE u_id = #{uId} AND is_delete = 1
+    SELECT * FROM file_user WHERE is_delete = 1
+    <if test="gId == null">
+      AND u_id = #{uId} AND g_id IS NULL
+    </if>
+    <if test="gId != null">
+      AND g_id = #{gId}
+    </if>
   </select>
 
   <update id="handleRecycle">
@@ -129,5 +154,9 @@
 
   <select id="selectFileByPathForShare" resultMap="WithSubItem">
     SELECT * FROM file_user WHERE share_id = #{shareId} AND f_path = #{path}
+  </select>
+
+  <select id="selectByType" resultMap="BaseResultMap">
+    SELECT * FROM file_user WHERE u_id = #{uId} and g_id IS NULL AND f_type = #{type} AND is_folder = 0
   </select>
 </mapper>

@@ -1,6 +1,7 @@
 package cn.edu.cdtu.drive.service;
 
 import cn.edu.cdtu.drive.pojo.Login;
+import cn.edu.cdtu.drive.pojo.SimpleUser;
 import cn.edu.cdtu.drive.pojo.User;
 import com.github.pagehelper.PageInfo;
 import org.apache.ibatis.annotations.Param;
@@ -31,4 +32,6 @@ public interface UserService {
     boolean setLimit(@Param("ids") List<String> ids, @Param("limit") Integer limit);
 
     boolean partialUpdate(User user);
+
+    Boolean saveUserList(List<SimpleUser>list);
 }

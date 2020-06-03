@@ -1,12 +1,10 @@
 package cn.edu.cdtu.drive.service.impl;
 
 import cn.edu.cdtu.drive.dao.DepartmentMapper;
+import cn.edu.cdtu.drive.dao.FileUserMapper;
 import cn.edu.cdtu.drive.dao.LoginMapper;
 import cn.edu.cdtu.drive.dao.UserMapper;
-import cn.edu.cdtu.drive.pojo.Department;
-import cn.edu.cdtu.drive.pojo.Login;
-import cn.edu.cdtu.drive.pojo.SimpleUser;
-import cn.edu.cdtu.drive.pojo.User;
+import cn.edu.cdtu.drive.pojo.*;
 import cn.edu.cdtu.drive.service.UserService;
 import cn.edu.cdtu.drive.util.CookieUtil;
 import cn.edu.cdtu.drive.util.DemoDataListener;
@@ -46,6 +44,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private DepartmentMapper departmentMapper;
+
+    @Autowired
+    private FileUserMapper fileUserMapper;
 
     private List<Department>departments;
 
@@ -119,12 +120,32 @@ public class UserServiceImpl implements UserService {
     @Override
     public Boolean insertByBatch(MultipartFile file) {
         try {
-            EasyExcel.read(file.getInputStream(), SimpleUser.class, new DemoDataListener(userMapper)).sheet().doRead();
+            EasyExcel.read(file.getInputStream(), SimpleUser.class, new DemoDataListener(this)).sheet().doRead();
             return true;
         } catch (IOException e) {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public Boolean saveUserList(List<SimpleUser>list) {
+        List<User>users = new ArrayList<>();
+        List<FileUser>fileUsers = new ArrayList<>();
+        System.out.println(list.size());
+        list.forEach(simpleUser -> {
+            var user = simpleUser.toUser();
+            users.add(user);
+            var fileUser = new FileUser();
+            fileUser.setId(DigestUtils.md5DigestAsHex((user.getId() + "/").getBytes()));
+            fileUser.setUId(user.getId());
+            fileUser.setIsFolder(1);
+            fileUser.setFPath("/");
+            fileUser.setFName("/");
+            fileUsers.add(fileUser);
+        });
+        userMapper.insertByBatch(users);
+        fileUserMapper.insertByBatch(fileUsers);
+        return true;
     }
 
     @Override

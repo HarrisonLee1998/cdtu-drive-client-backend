@@ -13,6 +13,8 @@ import cn.edu.cdtu.drive.util.FileUtils;
 import cn.edu.cdtu.drive.util.Node;
 import cn.edu.cdtu.drive.util.Result;
 import cn.edu.cdtu.drive.util.UUIDHelper;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -129,7 +131,6 @@ public class FileServiceImpl implements FileService {
         return b;
     }
 
-
     private List<Integer> getUnUploadedChunkNumber(FileItem fileItem) {
         File f = new File(fileItem.getPath());
         try {
@@ -161,8 +162,8 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public FileUser selectFileByPath(String uId, String path) {
-        var fileUser = fileUserMapper.selectFileByPath(uId, path);
+    public FileUser selectFileByPath(String uId, String gId, String path) {
+        var fileUser = fileUserMapper.selectFileByPath(uId, gId, path);
         if(Objects.isNull(fileUser)) {
             return null;
         }
@@ -302,10 +303,10 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public Node selectFolderTree(String uId) {
-        List<FileUser>fileUsers = fileUserMapper.selectAllFolder(uId);
+    public Node selectFolderTree(String uId, String gId) {
+        List<FileUser>fileUsers = fileUserMapper.selectAllFolder(uId, gId);
         fileUsers = fileUsers.stream().filter(f -> f.getIsDelete() == 0).collect(Collectors.toList());
-        FileUser rootFolder = fileUserMapper.selectFileByName(uId, "/");
+        FileUser rootFolder = fileUserMapper.selectFileByName(uId, gId, "/");
         if(Objects.isNull(rootFolder)) {
             return null;
         } else {
@@ -314,7 +315,6 @@ public class FileServiceImpl implements FileService {
             rootNode.setLabel(rootFolder.getFName());
             rootNode.setChildren(new ArrayList<>());
             buildTree(rootFolder, rootNode, fileUsers);
-            //printTree(rootFolder, 1);
             return rootNode;
         }
     }
@@ -512,8 +512,8 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public List<FileUser> selectFileForRecycleBin(String uId) {
-        var list = fileUserMapper.selectAllRecycledFile(uId);
+    public List<FileUser> selectFileForRecycleBin(String uId, String gId) {
+        var list = fileUserMapper.selectAllRecycledFile(uId, gId);
         var map = new HashMap<String, FileUser>();
         list.stream().forEach(fileUser -> {
             map.put(fileUser.getId(), fileUser);
@@ -679,6 +679,28 @@ public class FileServiceImpl implements FileService {
             maps.add(map);
         });
         return maps;
+    }
+
+    @Override
+    public PageInfo<FileUser> selectByType(String uId, String type, Integer pageNo, Integer pageSize) {
+        List<String>types = Arrays.asList("document", "image", "video", "audio");
+        if(Objects.nonNull(type) && !types.contains(type)) {
+            return null;
+        }
+        PageHelper.startPage(pageNo, pageSize);
+        var list = fileUserMapper.selectByType(uId, type);
+        return new PageInfo<>(list);
+    }
+
+    @Override
+    public byte[] getFileById(String id) throws IOException {
+        var fileItem = fileItemMapper.selectByPrimaryKey(id);
+        if(Objects.isNull(fileItem)) {
+            return null;
+        } else {
+            var path = Paths.get(fileItem.getPath(), fileItem.getId());
+            return Files.readAllBytes(path);
+        }
     }
 
     /**
