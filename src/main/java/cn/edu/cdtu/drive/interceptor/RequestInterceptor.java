@@ -39,6 +39,7 @@ public class RequestInterceptor implements HandlerInterceptor {
     private static ObjectMapper objectMapper = new ObjectMapper();
 
     private static List<String>white = Arrays.asList("/share/check", "/share/file/folder", "/admin/login",
+            "/user/avatar","/group/avatar",
             "/login", "/logout", "/error");
 
 

@@ -49,4 +49,16 @@
   <update id="updateFileStatus" parameterType="java.lang.String">
     UPDATE file SET status = 1 WHERE id = #{id}
   </update>
+
+  <select id="selectSizeByType" resultType="java.util.Map">
+    SELECT f_type AS type, SUM(f_size) AS totalSize FROM file GROUP BY f_type
+  </select>
+
+  <select id="selectSizeByDept" resultType="java.lang.Long">
+    SELECT SUM(f_size) FROM file AS f, user AS u, department AS d
+        WHERE f.u_id = u.id AND u.dept_id = d.id AND d.id IN
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+          #{id}
+        </foreach>
+  </select>
 </mapper>

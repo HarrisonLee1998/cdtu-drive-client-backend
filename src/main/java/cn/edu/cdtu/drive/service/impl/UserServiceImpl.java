@@ -153,6 +153,9 @@ public class UserServiceImpl implements UserService {
         if(Objects.isNull(user)) {
             return false;
         }
+        if(Objects.nonNull(user.getPassword())) {
+            user.setPassword(DigestUtils.md5DigestAsHex(user.getPassword().getBytes()));
+        }
         return userMapper.partialUpdate(user);
     }
 

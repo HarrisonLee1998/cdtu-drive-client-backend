@@ -4,8 +4,11 @@ import cn.edu.cdtu.drive.pojo.Chunk;
 import cn.edu.cdtu.drive.pojo.FileUser;
 import cn.edu.cdtu.drive.util.Node;
 import cn.edu.cdtu.drive.util.Result;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author HarrisonLee
@@ -30,4 +33,11 @@ public interface FileService {
 
     // Share Space
     FileUser selectFileByPathForShare(String shareId, String path);
+
+    byte[] getAvatar(String uId, String gId);
+    Boolean saveAvatar(String uId,String gId, MultipartFile file) throws IOException;
+
+    List<Map<String, Object>> selectSizeByType();
+
+    List<Map<String, Object>> selectSizeByDept();
 }

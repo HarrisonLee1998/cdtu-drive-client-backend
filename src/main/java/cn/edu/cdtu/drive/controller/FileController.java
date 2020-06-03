@@ -14,10 +14,12 @@ import cn.edu.cdtu.drive.util.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotBlank;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -268,6 +270,62 @@ public class FileController {
                 result.put("share", share);
                 result.put("list", fileUser.getList());
             }
+        }
+        return result;
+    }
+
+
+    @ApiOperation("获取用户或者组的头像")
+    @GetMapping(value = {"user/avatar", "group/avatar"})
+    public void getAvatar(HttpServletRequest request,HttpServletResponse response,
+                            @RequestParam String id) throws IOException {
+        byte[] avatar = null;
+        if(request.getRequestURI().startsWith("/user")) {
+            avatar = fileService.getAvatar(id, null);
+        } else {
+            avatar = fileService.getAvatar(null, id);
+        }
+        if(Objects.isNull(avatar)) {
+            response.setStatus(401);
+        } else {
+            response.getOutputStream().write(avatar);
+        }
+    }
+
+    @ApiOperation("获取用户或者组的头像")
+    @PostMapping(value = {"user/avatar"})
+    public void saveAvatar(HttpServletRequest request, HttpServletResponse response,
+                           @RequestParam("file") MultipartFile file) throws IOException {
+        var id = request.getParameter("id");
+        if(request.getRequestURI().startsWith("/user")) {
+            fileService.saveAvatar(id, null, file);
+        } else {
+            fileService.saveAvatar(null, id, file);
+        }
+    }
+
+    @ApiOperation("统计各学院的文件上传情况")
+    @GetMapping(value = "admin/file/stats/dept")
+    public Result selectSizeByDept() {
+        var result = Result.result();
+        var maps = fileService.selectSizeByDept();
+        if(Objects.isNull(maps)) {
+            result.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        } else {
+            result.put("maps", maps);
+        }
+        return result;
+    }
+
+    @ApiOperation("统计各学院的文件上传情况")
+    @GetMapping(value = "admin/file/stats/type")
+    public Result selectSizeByType() {
+        var result = Result.result();
+        var maps = fileService.selectSizeByType();
+        if(Objects.isNull(maps)) {
+            result.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        } else {
+            result.put("maps", maps);
         }
         return result;
     }

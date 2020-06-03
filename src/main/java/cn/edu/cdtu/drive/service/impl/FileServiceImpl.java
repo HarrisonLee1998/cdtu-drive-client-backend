@@ -2,10 +2,12 @@ package cn.edu.cdtu.drive.service.impl;
 
 import cn.edu.cdtu.drive.dao.FileItemMapper;
 import cn.edu.cdtu.drive.dao.FileUserMapper;
+import cn.edu.cdtu.drive.dao.GroupMapper;
 import cn.edu.cdtu.drive.dao.UserMapper;
 import cn.edu.cdtu.drive.pojo.Chunk;
 import cn.edu.cdtu.drive.pojo.FileItem;
 import cn.edu.cdtu.drive.pojo.FileUser;
+import cn.edu.cdtu.drive.service.DepartmentService;
 import cn.edu.cdtu.drive.service.FileService;
 import cn.edu.cdtu.drive.util.FileUtils;
 import cn.edu.cdtu.drive.util.Node;
@@ -44,6 +46,12 @@ public class FileServiceImpl implements FileService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private DepartmentService departmentService;
+
+    @Autowired
+    private GroupMapper groupMapper;
 
     private static String TODAY_COMMON_PATH = todayCommonPath();
 
@@ -155,6 +163,9 @@ public class FileServiceImpl implements FileService {
     @Override
     public FileUser selectFileByPath(String uId, String path) {
         var fileUser = fileUserMapper.selectFileByPath(uId, path);
+        if(Objects.isNull(fileUser)) {
+            return null;
+        }
         fileUser.setList(fileUser.getList().stream().filter(f -> f.getIsDelete() == 0).collect(Collectors.toList()));
         return fileUser;
     }
@@ -575,6 +586,101 @@ public class FileServiceImpl implements FileService {
         return fileUserMapper.selectFileByPathForShare(shareId, path);
     }
 
+    @Override
+    public byte[] getAvatar(String uId, String gId) {
+        Path path = Paths.get(uploadFolder, "avatar/default.jpg");
+        if(Objects.nonNull(uId)) {
+            var user = userMapper.selectByPrimaryKey(uId);
+            if(Objects.isNull(user)) {
+                return null;
+            } else if(Objects.nonNull(user.getAvatar())){
+                path = Paths.get(user.getAvatar());
+            }
+        } else if(Objects.nonNull(gId)) {
+            var group = groupMapper.selectByPrimaryKey(gId);
+            if(Objects.isNull(group)) {
+                return null;
+            } else if(Objects.nonNull(group.getAvatar())){
+                path = Paths.get(group.getAvatar());
+            }
+        } else {
+            return null;
+        }
+        try {
+            return Files.readAllBytes(path);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    @Override
+    public Boolean saveAvatar(String uId, String gId, MultipartFile file) throws IOException {
+        if(Objects.nonNull(uId) && Objects.nonNull(file)) {
+            var user = userMapper.selectByPrimaryKey(uId);
+            if(Objects.nonNull(user)) {
+                var path = Paths.get(uploadFolder, "avatar/user", UUIDHelper.rand(32));
+                Files.write(path, file.getBytes());
+                user.setAvatar(path.toString());
+                userMapper.partialUpdate(user);
+                return true;
+            }
+        } else if(Objects.nonNull(gId)&& Objects.nonNull(file)) {
+            var group = groupMapper.selectByPrimaryKey(gId);
+            if(Objects.nonNull(group)) {
+                var path = Paths.get(uploadFolder, "avatar/group", UUIDHelper.rand(32));
+                group.setAvatar(path.toString());
+                Files.write(path, file.getBytes());
+                groupMapper.updateByPrimaryKey(group);
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    @Override
+    public List<Map<String, Object>> selectSizeByType() {
+        return fileItemMapper.selectSizeByType();
+    }
+
+    @Override
+    public List<Map<String, Object>> selectSizeByDept() {
+        var maps = new ArrayList<Map<String, Object>>();
+        var node = departmentService.selectDepartmentTree();
+        var departments = departmentService.selectAll();
+        node.getChildren().forEach(n -> {
+            var map = new HashMap<String, Object>();
+            map.put("title", n.getLabel());
+            // 获取该学院下的所有部门
+            var list = new ArrayList<String>();
+            var subList = new ArrayList<String>();
+            var total = new ArrayList<String>();
+
+            list.add(n.getId());
+            while(list.size() > 0) {
+                for (String s : list) {
+                    departments.forEach(department -> {
+                        if(Objects.equals(s, department.getPDid())) {
+                            subList.add(department.getId());
+                        }
+                    });
+                }
+                total.addAll(subList);
+                list.clear();
+                list.addAll(subList);
+                subList.clear();
+            }
+            var size = 0L;
+            if(total.size() > 0) {
+                size = fileItemMapper.selectSizeByDept(total);
+            }
+            map.put("size", size);
+            maps.add(map);
+        });
+        return maps;
+    }
+
     /**
      * 深度优先遍历
      */
@@ -646,6 +752,8 @@ public class FileServiceImpl implements FileService {
             subFolders.clear();
         }
     }
+
+
     /**
      * 每天0点执行一次
      */
