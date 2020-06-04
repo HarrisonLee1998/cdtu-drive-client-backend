@@ -293,7 +293,8 @@ public class FileServiceImpl implements FileService {
             return false;
         } else {
             final FileUser parentFile = fileUserMapper.selectByPrimaryKey(fileUser.getFPid());
-            if(Objects.isNull(parentFile) || !Objects.equals(parentFile.getUId(), fileUser.getUId())) {
+            if(Objects.isNull(parentFile) ||
+                    (Objects.isNull(parentFile.getGId()) && !Objects.equals(parentFile.getUId(), fileUser.getUId()))) {
                 return false;
             }
             if(parentFile.getFName().equals("/")) {
@@ -311,10 +312,10 @@ public class FileServiceImpl implements FileService {
             fileUser.setLastUpdateDate(LocalDateTime.now());
             fileUser.setIsFolder(1);
             fileUser.setIsDelete(0);
-            System.out.println(fileUser);
             // 在判断目录是否已经存在
             final FileUser fileUser1 = fileUserMapper.selectByPrimaryKey(fileUser.getId());
             if(Objects.nonNull(fileUser1)) {
+                System.out.println("新建文件夹已存在");
                 return false;
             }
             return fileUserMapper.insert(fileUser) > 0;

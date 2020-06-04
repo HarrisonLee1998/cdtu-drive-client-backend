@@ -14,4 +14,6 @@ public interface ShareService {
     Result checkShare(List<String>shareTokens, String uId, String shareId, String pwd);
     Boolean checkShare(HttpServletRequest request, String shareId);
     Share selectShareById(String shareId);
+
+    boolean cancelShare(String uId, List<String>ids);
 }

@@ -60,4 +60,11 @@
   <update id="addDownloadTimes">
     UPDATE file_user SET download_times = download_times + 1 WHERE id = #{shareId}
   </update>
+
+  <delete id="deleteForUser">
+    DELETE FROM share WHERE u_id = #{uId} AND id IN
+    <foreach collection="ids" item="id" open="(" close=")" separator=",">
+      #{id}
+    </foreach>
+  </delete>
 </mapper>

@@ -13,7 +13,6 @@ import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -39,8 +38,7 @@ public class ShareServiceImpl implements ShareService {
     @Autowired
     private UserService userService;
 
-    @Value("share.link.prefix")
-    private String shareLinkPrefix;
+    private static String shareLinkPrefix = "http://localhost:3000/share/details?sid=";
 
     private Logger logger = LoggerFactory.getLogger(ShareServiceImpl.class);
 
@@ -75,6 +73,8 @@ public class ShareServiceImpl implements ShareService {
         share.setCreateDate(LocalDateTime.now());
         if(needPwd) {
             share.setPwd(UUIDHelper.rand(4).toLowerCase());
+        } else {
+            share.setPwd("");
         }
         if(days > 0) {
             share.setExpireDate(LocalDateTime.now().plusDays(days));
@@ -200,7 +200,8 @@ public class ShareServiceImpl implements ShareService {
             var share = shareMapper.selectByPrimaryKey(shareId);
             // The result of this method can be a negative period if the end is before the start.
             if(Objects.isNull(share)
-                    || Duration.between(LocalDateTime.now(), share.getExpireDate()).toSeconds() < 0) {
+                    || (Objects.nonNull(share.getExpireDate()) &&
+                    Duration.between(LocalDateTime.now(), share.getExpireDate()).toSeconds() < 0)) {
                 // 如果请求的分享不存在或已过期
                 logger.info("请求的分享不存在或已过期");
                 return false;
@@ -227,5 +228,13 @@ public class ShareServiceImpl implements ShareService {
     @Override
     public Share selectShareById(String shareId) {
         return shareMapper.selectByPrimaryKey(shareId);
+    }
+
+    @Override
+    public boolean cancelShare(String uId, List<String> ids) {
+        if(ids.size() == 0) {
+            return false;
+        }
+        return shareMapper.deleteForUser(uId, ids);
     }
 }

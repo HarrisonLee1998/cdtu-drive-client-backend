@@ -88,14 +88,26 @@ public class ShareController {
             result = shareService.checkShare(shareTokens, login.getUId(), shareId, pwd);
         }
         var share = (Share)result.getMap().get("share");
+        System.out.println(share);
         if(Objects.nonNull(share)) {
             String token = DigestUtils.md5DigestAsHex((share.getId() + share.getPwd()).getBytes());
             Cookie cookie = new Cookie("SHARE_TOKEN" + shareId, token);
-            cookie.setMaxAge(3600*24*1000);
-            cookie.setPath("/share");
+            cookie.setPath("/");
             response.addCookie(cookie);
         }
-        result.put("share", null);
+        return result;
+    }
+
+    @ApiOperation("取消分享")
+    @PostMapping("share/cancel")
+    public Result cancelShare(HttpServletRequest request, @RequestBody Map<String, Object> map) {
+        var result = Result.result();
+        var ids = (List<String>)map.get("ids");
+        var login = userService.getLoginFromToken(request);
+        var b = shareService.cancelShare(login.getUId(), ids);
+        if(!b) {
+            result.setStatus(HttpStatus.BAD_REQUEST);
+        }
         return result;
     }
 }
